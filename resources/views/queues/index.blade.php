@@ -81,14 +81,6 @@
             box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.1);
         }
 
-        .queue-display h2,
-        .queue-display h3 {
-            font-size: 24px;
-            margin: 10px 0;
-            color: #007bff;
-            font-weight: bold;
-        }
-
         .button-group {
             display: flex;
             justify-content: center;
@@ -112,31 +104,12 @@
             opacity: 0.9;
         }
 
-        button:first-of-type {
-            background: #28a745;
-        }
-
-        /* Next - Green */
-        button:nth-of-type(2) {
-            background: #ffc107;
-        }
-
-        /* Previous - Yellow */
-        button:nth-of-type(3) {
-            background: #dc3545;
-        }
-
-        /* Reset - Red */
-
-
-        /* Footer at the Bottom */
         .footer_section {
             margin-top: auto;
             background-color: #f8f9fa;
             padding: 30px 0;
         }
 
-        /* Footer Content */
         .footer_logo {
             font-size: 1.5rem;
             font-weight: bold;
@@ -148,7 +121,6 @@
             margin-top: 10px;
         }
 
-        /* Mobile Responsiveness */
         @media (max-width: 767px) {
             .service_box {
                 height: auto;
@@ -179,27 +151,30 @@
         </div>
     </header>
     <div class="containerBody">
-        <h1>Hospital Queue Management</h1>
+        <h1>SmartQueue Hospital</h1>
 
         <div class="queue-display">
-            <h2>Current Number: {{ $queue->current_number }}</h2>
-            <h3>Next Number: {{ $queue->next_number }}</h3>
+            <p style="font-size: 24px; color: green; font-weight: bold;">Current Number/தற்போதைய எண்/වත්මන් අංකය</p>
+            <p style="font-size: 48px; color: green; font-weight: bold;">{{ $queue->current_number }}</p>
+            <p style="font-size: 12px; color: blue; font-weight: bold;">Next Number/அடுத்த எண்/මීළඟ අංකය:</p>
+            <p style="font-size: 18px; color: blue; font-weight: bold;"> {{ $queue->next_number }}</p>
         </div>
 
         <div class="button-group">
             <form action="{{ url('/next') }}" method="POST" style="display:inline;">
                 @csrf
-                <button type="submit">Next</button>
+                <button type="submit" style="background: #28a745; color: white; padding: 16px 48px; font-size: 18px;">Next</button>
             </form>
             <form action="{{ url('/previous') }}" method="POST" style="display:inline;">
                 @csrf
-                <button type="submit">Previous</button>
+                <button type="submit" style="background: #ffc107; color: white; padding: 16px 8px; font-size: 18px;">Previous</button>
             </form>
             <form action="{{ url('/reset') }}" method="POST" style="display:inline;">
                 @csrf
-                <button type="submit">Reset</button>
+                <button type="submit" style="background: #dc3545; color: white; padding: 16px 8px; font-size: 18px;">Reset</button>
             </form>
         </div>
+
     </div>
     <footer class="footer_section">
         <div class="container">
@@ -224,24 +199,24 @@
         </div>
     </footer>
     <script>
-    let secondScreen = null;
+        let secondScreen = null;
 
-    // Get dynamic values from Laravel
-    let currentQueueNumber = @json($queue->current_number);
-    let nextQueueNumber = @json($queue->next_number);
+        // Get dynamic values from Laravel
+        let currentQueueNumber = @json($queue -> current_number);
+        let nextQueueNumber = @json($queue -> next_number);
 
-    // Open the second screen (popup) to display the queue
-    function openSecondScreen() {
-        if (!secondScreen || secondScreen.closed) {
-            secondScreen = window.open('', 'secondScreen', 'width=400,height=300');
+        // Open the second screen (popup) to display the queue
+        function openSecondScreen() {
+            if (!secondScreen || secondScreen.closed) {
+                secondScreen = window.open('', 'secondScreen', 'width=400,height=300');
+            }
+            updateSecondScreen();
         }
-        updateSecondScreen();
-    }
 
-    // Update the second screen with the latest queue data
-    function updateSecondScreen() {
-        if (secondScreen) {
-            secondScreen.document.body.innerHTML = `
+        // Update the second screen with the latest queue data
+        function updateSecondScreen() {
+            if (secondScreen) {
+                secondScreen.document.body.innerHTML = `
                 <html lang="en">
                     <head>
                         <meta charset="utf-8">
@@ -309,19 +284,8 @@
                                 border-radius: 10px;
                                 margin-bottom: 20px;
                             }
-                            .queue-display h1{
-                                font-size: 48px;
-                                margin: 10px 0;
-                                color:rgb(34, 235, 16);
-                                font-weight: bold;
-                            }
-                            .queue-display h6 {
-                                font-size: 24px;
-                                margin: 10px 0;
-                                color: #007bff;
-                                font-weight: bold;
-                            }
-                                /* Footer at the Bottom */
+        
+                            /* Footer at the Bottom */
                             .footer_section {
                                 margin-top: auto;
                                 background-color: #f8f9fa;
@@ -370,10 +334,12 @@
                         </div>
                     </header>
                     <div class="containerBody">
-                        <h1>Hospital Queue Management</h1>
+                        <h1>SmartQueue Hospital</h1>
                         <div class="queue-display">
-                            <h1>Current Number: ${currentQueueNumber}</h1>
-                            <h6>Next Number: ${nextQueueNumber}</h6>
+                            <p style="font-size: 48px; color: green; font-weight: bold;">Queue Number/வரிசை எண்/පෝලිම් අංකය</p>
+                            <p style="font-size: 72px; color: green; font-weight: bold;">${currentQueueNumber}</p>
+                            <p style="font-size: 12px; color: blue; font-weight: bold;">Next Number/அடுத்த இலக்கம்/මීළඟ අංකය:</p>
+                            <p style="font-size: 18px; color: blue; font-weight: bold;"> ${nextQueueNumber}</p>
                         </div>
                     </div>
                          <footer class="footer_section">
@@ -401,24 +367,24 @@
                     </body>
                 </html>
             `;
+            }
         }
-    }
 
-    // Trigger update when the session passes queue-updated flag
-    @if(session('queue-updated'))
+        // Trigger update when the session passes queue-updated flag
+        @if(session('queue-updated'))
         localStorage.setItem('queue-update', 'updated');
-    @endif
+        @endif
 
-    // Listen for changes in localStorage and update the second screen when needed
-    window.addEventListener('storage', function(e) {
-        if (e.key === 'queue-update') {
-            updateSecondScreen();
-        }
-    });
+        // Listen for changes in localStorage and update the second screen when needed
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'queue-update') {
+                updateSecondScreen();
+            }
+        });
 
-    // Make sure the second screen is opened
-    openSecondScreen();
-</script>
+        // Make sure the second screen is opened
+        openSecondScreen();
+    </script>
 
 
 </body>
