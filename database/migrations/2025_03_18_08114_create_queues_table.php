@@ -6,24 +6,20 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up()
     {
         Schema::create('queues', function (Blueprint $table) {
             $table->id();
-            $table->integer('current_number')->default(1);
-            $table->integer('next_number')->default(2);
+            $table->foreignId('clinic_id')->constrained()->onDelete('cascade');
+            $table->integer('current_number')->nullable();
+            $table->integer('next_number')->nullable(); 
+            $table->string('password')->nullable(); 
+            $table->longText('image_path')->nullable(); 
             $table->timestamps();
         });
+        
     }
 
-
-
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('queues');
