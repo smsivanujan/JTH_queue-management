@@ -1,7 +1,6 @@
 @extends('layouts.app')
 
 @section('title', 'SmartQueue Hospital')
-
 @push('styles')
 <style>
     html,
@@ -120,33 +119,32 @@
     }
 </style>
 @endpush
-
 @section('content')
 <div class="containerBody">
     <h1>{{ $clinic->name }}</h1>
-    <div class="queue-display" id="main-queue-display">
+    <div class="queue-display">
         <p style="font-size: 24px; color: green; font-weight: bold;">Current Number/தற்போதைய எண்/වත්මන් අංකය</p>
         <p style="font-size: 48px; color: green; font-weight: bold;">{{ $queue->current_number }}</p>
         <p style="font-size: 12px; color: blue; font-weight: bold;">Next Number/அடுத்த எண்/මීළඟ අංකය:</p>
-        <p style="font-size: 18px; color: blue; font-weight: bold;">{{ $queue->next_number }}</p>
+        <p style="font-size: 18px; color: blue; font-weight: bold;"> {{ $queue->next_number }}</p>
     </div>
 
     <div class="button-group">
         <form action="{{ route('queues.next', ['clinicId' => $queue->clinic_id]) }}" method="POST" style="display:inline;">
             @csrf
-            <button type="submit" style="background: #28a745;">Next</button>
+            <button type="submit" style="background: #28a745; color: white; padding: 16px 48px; font-size: 18px;">Next</button>
         </form>
         <form action="{{ route('queues.previous', ['clinicId' => $queue->clinic_id]) }}" method="POST" style="display:inline;">
             @csrf
-            <button type="submit" style="background: #ffc107;">Previous</button>
+            <button type="submit" style="background: #ffc107; color: white; padding: 16px 8px; font-size: 18px;">Previous</button>
         </form>
         <form action="{{ route('queues.reset', ['clinicId' => $queue->clinic_id]) }}" method="POST" style="display:inline;">
             @csrf
-            <button type="submit" style="background: #dc3545;">Reset</button>
+            <button type="submit" style="background: #dc3545; color: white; padding: 16px 8px; font-size: 18px;">Reset</button>
         </form>
         <form action="{{ route('logout') }}" method="POST">
             @csrf
-            <button type="submit" style="background:rgb(110, 110, 110);">EXIT</button>
+            <button type="submit" style="background:rgb(110, 110, 110); color: white; padding: 16px 8px; font-size: 18px;">EXIT</button>
         </form>
     </div>
 </div>
@@ -154,18 +152,45 @@
 
 @push('scripts')
 <script>
+    const clinicId = @json($clinic - > id);
+
+    function fetchQueueLive() {
+        fetch(`/api/queue/${clinicId}`)
+            .then(res => res.json())
+            .then(data => {
+                // Update values on main screen
+                document.querySelector('.queue-display').innerHTML = `
+                    <p style="font-size: 24px; color: green; font-weight: bold;">Current Number/தற்போதைய எண்/වත්මන් අංකය</p>
+                    <p style="font-size: 48px; color: green; font-weight: bold;">${data.current_number}</p>
+                    <p style="font-size: 12px; color: blue; font-weight: bold;">Next Number/அடுத்த எண்/මීළඟ අංකය:</p>
+                    <p style="font-size: 18px; color: blue; font-weight: bold;">${data.next_number}</p>
+                `;
+
+                // Update second screen too
+                currentQueueNumber = data.current_number;
+                nextQueueNumber = data.next_number;
+                updateSecondScreen();
+            });
+    }
+
+    // Fetch every 5 seconds
+    setInterval(fetchQueueLive, 500);
+</script>
+
+<script>
     let secondScreen = null;
-    let currentQueueNumber = @json($queue->current_number);
-    let nextQueueNumber = @json($queue->next_number);
-    let clinicQueueName = @json($clinic->name);
-    const clinicId = @json($clinic->id);
+    let currentQueueNumber = @json($queue -> current_number);
+    let nextQueueNumber = @json($queue -> next_number);
+    let clinicQueueName = @json($clinic -> name);
 
     function openSecondScreen() {
         if (!secondScreen || secondScreen.closed) {
             secondScreen = window.open('', 'secondScreen', 'width=' + screen.availWidth + ',height=' + screen.availHeight);
-            secondScreen.moveTo(0, 0);
+
+            secondScreen.moveTo(screen.availWidth, 0);
             secondScreen.resizeTo(screen.availWidth, screen.availHeight);
         }
+
         updateSecondScreen();
     }
 
@@ -326,31 +351,26 @@
         }
     }
 
-    // Realtime AJAX polling
-    function fetchQueueLive() {
+    @if(session('queue-updated'))
+    localStorage.setItem('queue-update', 'updated');
+    @endif
 
-        fetch("{{ url('/api/queue/' . $queue->id) }}")
-            .then(res => res.json())
-            .then(data => {
-                currentQueueNumber = data.current_number;
-                nextQueueNumber = data.next_number;
-
-                // Update main display
-                document.getElementById('main-queue-display').innerHTML = `
-                    <p style="font-size: 24px; color: green; font-weight: bold;">Current Number/தற்போதைய எண்/වත්මන් අංකය</p>
-                    <p style="font-size: 48px; color: green; font-weight: bold;">${data.current_number}</p>
-                    <p style="font-size: 12px; color: blue; font-weight: bold;">Next Number/அடுத்த எண்/මීළඟ අංකය:</p>
-                    <p style="font-size: 18px; color: blue; font-weight: bold;">${data.next_number}</p>
-                `;
-
-                // Update second screen too
-                updateSecondScreen();
-            });
-    }
-
-    // Run every 3 seconds
-    setInterval(fetchQueueLive, 3000);
-    fetchQueueLive();
+    window.addEventListener('storage', function(e) {
+        if (e.key === 'queue-update') {
+            currentQueueNumber = @json($queue - > current_number);
+            nextQueueNumber = @json($queue - > next_number);
+            updateSecondScreen();
+        }
+    });
     openSecondScreen();
+</script>
+
+<script>
+    // Function to close the second screen
+    function closeSecondScreen() {
+        if (window.secondScreen && !window.secondScreen.closed) {
+            window.secondScreen.close();
+        }
+    }
 </script>
 @endpush

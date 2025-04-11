@@ -11,6 +11,7 @@ Route::post('/logout', function () {
     return redirect('/');
 })->name('logout');
 
+Route::get('/api/queue/{clinicId}', [QueueController::class, 'getLiveQueue'])->name('queues.fetchApi');
 
 Route::get('/check-password', [QueueController::class, 'checkPasswordPage'])->name('password.check');
 Route::post('/verify-password', [QueueController::class, 'verifyPassword'])->name('password.verify');

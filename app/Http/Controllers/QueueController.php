@@ -134,4 +134,15 @@ class QueueController extends Controller
 
         return redirect()->route('queues.index', ['clinicId' => $clinicId]);
     }
+
+    public function getLiveQueue($clinicId)
+{
+    $queue = \App\Models\Queue::where('clinic_id', $clinicId)->first();
+
+    return response()->json([
+        'current_number' => $queue->current_number,
+        'next_number' => $queue->next_number
+    ]);
+}
+
 }
