@@ -154,11 +154,22 @@
 
 @push('scripts')
 <script>
+    function speakNumber(number) {
+        const msg = new SpeechSynthesisUtterance(`வரிசை எண் ${number} உள்ளே வரவும் `);
+        msg.lang = 'ta-IN'; // You can also try 'ta-IN' for Tamil, 'si-LK' for Sinhala //en-US
+        msg.rate = 0.9; // adjust speed if needed
+        msg.pitch = 1;
+        window.speechSynthesis.cancel(); // stop any previous speech
+        window.speechSynthesis.speak(msg);
+    }
+</script>
+
+<script>
     let secondScreen = null;
-    let currentQueueNumber = @json($queue->current_number);
-    let nextQueueNumber = @json($queue->next_number);
-    let clinicQueueName = @json($clinic->name);
-    const clinicId = @json($clinic->id);
+    let currentQueueNumber = @json($queue -> current_number);
+    let nextQueueNumber = @json($queue -> next_number);
+    let clinicQueueName = @json($clinic -> name);
+    const clinicId = @json($clinic -> id);
 
     function openSecondScreen() {
         if (!secondScreen || secondScreen.closed) {
@@ -326,27 +337,50 @@
         }
     }
 
-    // Realtime AJAX polling
+    let currentQueueNumber1 = null;
     function fetchQueueLive() {
+    fetch("{{ url('/api/queue/' . $queue->id) }}")
+        .then(res => res.json())
+        .then(data => {
+            if (data.current_number !== currentQueueNumber1) {
+                speakNumber(data.current_number);
+            }
 
-        fetch("{{ url('/api/queue/' . $queue->id) }}")
-            .then(res => res.json())
-            .then(data => {
-                currentQueueNumber = data.current_number;
-                nextQueueNumber = data.next_number;
+            currentQueueNumber1 = data.current_number;
 
-                // Update main display
-                document.getElementById('main-queue-display').innerHTML = `
-                    <p style="font-size: 24px; color: green; font-weight: bold;">Current Number/தற்போதைய எண்/වත්මන් අංකය</p>
-                    <p style="font-size: 48px; color: green; font-weight: bold;">${data.current_number}</p>
-                    <p style="font-size: 12px; color: blue; font-weight: bold;">Next Number/அடுத்த எண்/මීළඟ අංකය:</p>
-                    <p style="font-size: 18px; color: blue; font-weight: bold;">${data.next_number}</p>
-                `;
+            document.getElementById('main-queue-display').innerHTML = `
+                <p style="font-size: 24px; color: green; font-weight: bold;">Current Number/தற்போதைய எண்/වත්මන් අංකය</p>
+                <p style="font-size: 48px; color: green; font-weight: bold;">${data.current_number}</p>
+                <p style="font-size: 12px; color: blue; font-weight: bold;">Next Number/அடுத்த எண்/මීළඟ අංකය:</p>
+                <p style="font-size: 18px; color: blue; font-weight: bold;">${data.next_number}</p>
+            `;
 
-                // Update second screen too
-                updateSecondScreen();
-            });
-    }
+            updateSecondScreen();
+        });
+}
+
+
+    // Realtime AJAX polling
+    // function fetchQueueLive() {
+
+    //     fetch("{{ url('/api/queue/' . $queue->id) }}")
+    //         .then(res => res.json())
+    //         .then(data => {
+    //             currentQueueNumber = data.current_number;
+    //             nextQueueNumber = data.next_number;
+
+    //             // Update main display
+    //             document.getElementById('main-queue-display').innerHTML = `
+    //                 <p style="font-size: 24px; color: green; font-weight: bold;">Current Number/தற்போதைய எண்/වත්මන් අංකය</p>
+    //                 <p style="font-size: 48px; color: green; font-weight: bold;">${data.current_number}</p>
+    //                 <p style="font-size: 12px; color: blue; font-weight: bold;">Next Number/அடுத்த எண்/මීළඟ අංකය:</p>
+    //                 <p style="font-size: 18px; color: blue; font-weight: bold;">${data.next_number}</p>
+    //             `;
+
+    //             // Update second screen too
+    //             updateSecondScreen();
+    //         });
+    // }
 
     // Run every 3 seconds
     setInterval(fetchQueueLive, 3000);
