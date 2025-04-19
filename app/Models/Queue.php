@@ -9,7 +9,7 @@ class Queue extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['current_number', 'next_number'];
+    protected $fillable = ['display', 'password'];
 
     public function clinic()
     {

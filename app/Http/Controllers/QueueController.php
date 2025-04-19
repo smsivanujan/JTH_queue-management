@@ -4,24 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Models\Clinic;
 use App\Models\Queue;
+use App\Models\SubQueue;
 use Illuminate\Http\Request;
 
 class QueueController extends Controller
 {
-    public function show($clinicId)
+    public function checkPasswordPage(Request $request)
     {
-        $queue = Queue::where('clinic_id', $clinicId)->first();
-        if (!$queue) {
-            return "No queue found for clinic ID: $clinicId";
-        }
-        return view('index', compact('queue'));
+        $clinicId = $request->query('clinic_id');
+        return view('password_model', ['clinicId' => $clinicId]);
     }
-
-    // public function checkPasswordPage(Request $request)
-    // {
-    //     $clinicId = $request->query('clinic_id');
-    //     return view('password_model', ['clinicId' => $clinicId]);
-    // }
 
     public function verifyPassword(Request $request)
     {
@@ -46,91 +38,64 @@ class QueueController extends Controller
             return redirect('/')->withErrors(['Access denied. Please enter the password.']);
         }
 
-        $queue = Queue::where('clinic_id', $clinicId)->first();
+        $queue = Queue::where('clinic_id', $clinicId)->first();  // Get the first queue for the clinic
         $clinic = Clinic::findOrFail($clinicId);
 
+        // If no queue exists, create a default one
         if (!$queue) {
             $queue = Queue::create([
                 'clinic_id' => $clinicId,
                 'current_number' => 1,
-                'next_number' => 2
+                'next_number' => 2,
+                'display' => 1 // default display value
             ]);
         }
 
+        // Fallback to default view if custom display view is not found
         return view('index', compact('queue', 'clinic'));
     }
 
     // Move to the next number in the queue
-    public function next($clinicId)
+    public function next($clinicId, $queueNumber)
     {
-        // Fetch the current queue record
-        $queue = Queue::where('clinic_id', $clinicId)->first();
+        $subQueue = SubQueue::firstOrCreate(
+            ['clinic_id' => $clinicId, 'queue_number' => $queueNumber],
+            ['current_number' => 1, 'next_number' => 2]
+        );
 
-        if (!$queue) {
-            $queue = Queue::create([
-                'clinic_id' => $clinicId,
-                'current_number' => 1,
-                'next_number' => 2
-            ]);
-        }
-
-        // Update the queue numbers
-        $queue->current_number = $queue->next_number;
-        $queue->next_number += 1; // Increment the next number
-        $queue->save();
-
-        // Set a session flag to indicate the queue has been updated
-        session()->flash('queue-updated', true);
+        $subQueue->current_number = $subQueue->next_number;
+        $subQueue->next_number += 1;
+        $subQueue->save();
 
         return redirect()->route('queues.index', ['clinicId' => $clinicId]);
     }
 
-    public function previous($clinicId)
+    public function previous($clinicId, $queueNumber)
     {
-        // Fetch the current queue record
-        $queue = Queue::where('clinic_id', $clinicId)->first();
+        $subQueue = SubQueue::firstOrCreate(
+            ['clinic_id' => $clinicId, 'queue_number' => $queueNumber],
+            ['current_number' => 1, 'next_number' => 2]
+        );
 
-        if (!$queue) {
-            $queue = Queue::create([
-                'clinic_id' => $clinicId,
-                'current_number' => 1,
-                'next_number' => 2
-            ]);
+        if ($subQueue->current_number > 1) {
+            $subQueue->next_number = $subQueue->current_number;
+            $subQueue->current_number -= 1;
+            $subQueue->save();
         }
-
-        // Prevent going below 1
-        if ($queue->current_number > 1) {
-            $queue->next_number = $queue->current_number;
-            $queue->current_number -= 1; // Decrement the current number
-            $queue->save();
-        }
-
-        // Set a session flag to indicate the queue has been updated
-        session()->flash('queue-updated', true);
 
         return redirect()->route('queues.index', ['clinicId' => $clinicId]);
     }
 
-    public function reset($clinicId)
+    public function reset($clinicId, $queueNumber)
     {
-        // Fetch the current queue record
-        $queue = Queue::where('clinic_id', $clinicId)->first();
+        $subQueue = SubQueue::firstOrCreate(
+            ['clinic_id' => $clinicId, 'queue_number' => $queueNumber],
+            ['current_number' => 1, 'next_number' => 2]
+        );
 
-        if (!$queue) {
-            $queue = Queue::create([
-                'clinic_id' => $clinicId,
-                'current_number' => 1,
-                'next_number' => 2
-            ]);
-        }
-
-        // Reset the queue numbers
-        $queue->current_number = 1;
-        $queue->next_number = 2;
-        $queue->save();
-
-        // Set a session flag to indicate the queue has been updated
-        session()->flash('queue-updated', true);
+        $subQueue->current_number = 1;
+        $subQueue->next_number = 2;
+        $subQueue->save();
 
         return redirect()->route('queues.index', ['clinicId' => $clinicId]);
     }
@@ -138,10 +103,18 @@ class QueueController extends Controller
     public function getLiveQueue($clinicId)
     {
         $queue = Queue::where('clinic_id', $clinicId)->first();
+        $subQueues = \App\Models\SubQueue::where('clinic_id', $clinicId)->get();
+
+        $subQueueData = $subQueues->map(function ($subQueue) {
+            return [
+                'queue_number' => $subQueue->queue_number,
+                'current_number' => $subQueue->current_number,
+                'next_number' => $subQueue->next_number
+            ];
+        });
 
         return response()->json([
-            'current_number' => $queue->current_number,
-            'next_number' => $queue->next_number
+            'subQueues' => $subQueueData
         ]);
     }
 }
