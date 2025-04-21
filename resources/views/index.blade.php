@@ -53,9 +53,8 @@
     }
 
     .containerBody {
-        flex: 1 1 30%;
-        /* Allow the container to take 30% of available space */
-        max-width: 30%;
+        flex: 0 1 30%;
+        max-width: 32%;
         /* Maximum width of 30% for each container */
         box-sizing: border-box;
         min-width: 250px;
@@ -144,14 +143,6 @@
         }
     }
 
-    /* Optional: To make the footer stay at the bottom */
-    html,
-    body {
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-    }
-
     footer {
         margin-top: auto;
         background-color: #f8f9fa;
@@ -165,7 +156,7 @@
 <div id="main-queue-display"></div>
 @php
 $colors = ['white', 'green', 'red', 'yellow', 'brown'];
-$labels = ['Urine Test', 'Full Blood Count', 'ESR'];
+$labels = ['Urine Test', 'FBC', 'ESR'];
 @endphp
 <div class="containerBodyWrapper">
     @for ($i = 1; $i <= $queue->display; $i++)
@@ -208,10 +199,13 @@ $labels = ['Urine Test', 'Full Blood Count', 'ESR'];
         @endfor
 </div>
 
-<form action="{{ route('logout') }}" method="POST" id="logoutForm">
-    @csrf
-    <button type="submit" style="background:rgb(110, 110, 110);">EXIT</button>
-</form>
+<div style="display: flex; justify-content: center; margin-top: 20px;">
+    <form action="{{ route('logout') }}" method="POST" id="logoutForm">
+        @csrf
+        <button type="submit" style="background:rgb(110, 110, 110);">EXIT</button>
+    </form>
+</div>
+
 @endsection
 
 @push('scripts')
@@ -281,10 +275,10 @@ $labels = ['Urine Test', 'Full Blood Count', 'ESR'];
                     const bgColor = colors[index % colors.length];
                     'Urine Test', 'Full Blood Count', 'ESR'
                     const labels = [
-                        'Urine Test / சிறுநீர் பரிசோதனை / මූත්‍ර පරීක්ෂණය',
-                        'Full Blood Count / முழு இரத்த எண்ணிக்கை / සම්පූර්ණ රුධිර ගණනය',
-                        'ESR / இ.சா.அரா / එ.එස්.ආර්'
-                    ];
+                    'Urine Test / சிறுநீர் பரிசோதனை / මූත්‍ර පරීක්ෂණය',
+                    'FBC / குருதி கல எண்ணிக்கை பரிசோதனை / රුධිර සෙලුල ගණන පරීක්ෂණය',
+                    'ESR / செங்குருதி கல அடைவு பரிசோதனை / රතු රුධිර සෙලුල ප්‍රතිසංස්කරණ පරීක්ෂණය'
+                ];
 
                     const displayCount = @json($queue->display);
                     const clinicIdCheck = @json($clinic->id);
@@ -295,7 +289,7 @@ $labels = ['Urine Test', 'Full Blood Count', 'ESR'];
 
                     queueHtml += `
                         <div class="containerBody" style="margin-bottom: 40px; background-color: ${bgColor};">
-                            <h2>${queueLabel}</h2>
+                            <h4>${queueLabel}</h4>
                             <div class="queue-display">
                                 <p style="font-size: 24px; color: green; font-weight: bold;">Current Number / தற்போதைய எண் / වත්மන් අංකය</p>
                                 <p style="font-size: 48px; color: green; font-weight: bold;">${subQueue.current_number}</p>
@@ -313,6 +307,9 @@ $labels = ['Urine Test', 'Full Blood Count', 'ESR'];
                 <html>
                 <head>
                     <title>Teaching Hospital Jaffna</title>
+                    <meta charset="utf-8">
+                    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
                     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
                     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css">
                     <style>
