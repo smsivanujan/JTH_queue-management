@@ -164,7 +164,8 @@
 <h1 style="text-align: center; color: white;font-size: 48px;">{{ $clinic->name }}</h1>
 <div id="main-queue-display"></div>
 @php
-$colors = ['white', '#d4edda', '#f8d7da', '#fff3cd', '#e6ccb2']; // white, green, red, yellow, brown
+$colors = ['white', 'green', 'red', 'yellow', 'brown'];
+$labels = ['Urine Test', 'Full Blood Count', 'ESR'];
 @endphp
 <div class="containerBodyWrapper">
     @for ($i = 1; $i <= $queue->display; $i++)
@@ -174,7 +175,13 @@ $colors = ['white', '#d4edda', '#f8d7da', '#fff3cd', '#e6ccb2']; // white, green
         @endphp
 
         <div class="containerBody" style="margin-bottom: 40px; background-color: {{ $bgColor }};">
-            <h2>Queue #{{ $i }}</h2>
+            <h2>
+                @if ($queue->display == 3 && $clinic->id == 2)
+                {{ $labels[$i - 1] }}
+                @else
+                Queue #{{ $i }}
+                @endif
+            </h2>
 
             <div class="queue-display" id="queue-display-{{ $i }}">
                 <p style="font-size: 24px; color: green; font-weight: bold;">Current Number</p>
@@ -270,12 +277,25 @@ $colors = ['white', '#d4edda', '#f8d7da', '#fff3cd', '#e6ccb2']; // white, green
             .then(data => {
                 let queueHtml = '';
                 data.subQueues.forEach((subQueue, index) => {
-                    const colors = ['white', '#d4edda', '#f8d7da', '#fff3cd', '#e6ccb2']; // white, green, red, yellow, brown
+                    const colors = ['white', 'green', 'red', 'yellow', 'brown'];
                     const bgColor = colors[index % colors.length];
+                    'Urine Test', 'Full Blood Count', 'ESR'
+                    const labels = [
+                        'Urine Test / சிறுநீர் பரிசோதனை / මූත්‍ර පරීක්ෂණය',
+                        'Full Blood Count / முழு இரத்த எண்ணிக்கை / සම්පූර්ණ රුධිර ගණනය',
+                        'ESR / இ.சா.அரா / එ.එස්.ආර්'
+                    ];
+
+                    const displayCount = @json($queue->display);
+                    const clinicIdCheck = @json($clinic->id);
+
+                    const queueLabel = (displayCount === 3 && clinicIdCheck === 2)
+                    ? labels[index] || `Queue/வரிசை/පෝළිම`
+                    : `Queue/வரிசை/පෝළිම`;
 
                     queueHtml += `
                         <div class="containerBody" style="margin-bottom: 40px; background-color: ${bgColor};">
-                            <h2>Queue #${subQueue.queue_number}</h2>
+                            <h2>${queueLabel}</h2>
                             <div class="queue-display">
                                 <p style="font-size: 24px; color: green; font-weight: bold;">Current Number / தற்போதைய எண் / වත්மන් අංකය</p>
                                 <p style="font-size: 48px; color: green; font-weight: bold;">${subQueue.current_number}</p>
@@ -296,38 +316,158 @@ $colors = ['white', '#d4edda', '#f8d7da', '#fff3cd', '#e6ccb2']; // white, green
                     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
                     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css">
                     <style>
+                        /* Basic Styling */
+                        html,
                         body {
+                            height: 100%;
+                            display: flex;
+                            flex-direction: column;
                             background: linear-gradient(#373B44, #4286f4);
-                            margin: 0;
-                            padding: 0;
-                            font-family: Arial, sans-serif;
                         }
+
+                        .header_section {
+                            position: sticky;
+                            top: 0;
+                            z-index: 1000;
+                            background-color: #ffffff;
+                            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                            padding: 15px 0;
+                        }
+
+                        .header-content {
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            height: 100%;
+                        }
+
+                        .logo {
+                            display: flex;
+                            justify-content: center;
+                        }
+
+                        main {
+                            flex: 1;
+                            display: flex;
+                            flex-direction: column;
+                            align-items: center;
+                            padding: 20px;
+                        }
+
                         .containerBodyWrapper {
                             display: flex;
                             justify-content: space-around;
+                            /* Distribute space evenly between items */
+                            gap: 20px;
+                            /* Space between containers */
                             flex-wrap: wrap;
-                            padding: 20px;
+                            /* Ensure the containers wrap when space is tight */
                         }
+
                         .containerBody {
                             flex: 1 1 30%;
+                            /* Allow the container to take 30% of available space */
                             max-width: 30%;
+                            /* Maximum width of 30% for each container */
+                            box-sizing: border-box;
+                            min-width: 250px;
+                            /* Prevent containers from getting too small */
+                            margin-bottom: 20px;
+                            /* Space below each container */
                             background: white;
                             padding: 30px;
                             border-radius: 12px;
                             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
                             text-align: center;
                             border: 2px solid #007bff;
-                            margin: 20px;
                         }
-                        h2 {
+
+                        /* Make the header text large and bold */
+                        h1 {
                             font-size: 26px;
+                            font-weight: bold;
                             margin-bottom: 20px;
                             color: #333;
                         }
+
+                        /* Styling the Queue Display */
                         .queue-display {
                             background: #f8f9fa;
                             padding: 20px;
                             border-radius: 10px;
+                            margin-bottom: 20px;
+                            box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.1);
+                        }
+
+                        /* Styling the buttons */
+                        .button-group {
+                            display: flex;
+                            justify-content: center;
+                            gap: 10px;
+                            flex-wrap: wrap;
+                        }
+
+                        button {
+                            padding: 12px 18px;
+                            font-size: 16px;
+                            font-weight: bold;
+                            color: white;
+                            border: none;
+                            border-radius: 8px;
+                            cursor: pointer;
+                            transition: transform 0.2s ease, opacity 0.3s ease;
+                        }
+
+                        button:hover {
+                            transform: translateY(-2px);
+                            opacity: 0.9;
+                        }
+
+                        /* Footer Section */
+                        .footer_section {
+                            margin-top: auto;
+                            background-color: #f8f9fa;
+                            padding: 30px 0;
+                        }
+
+                        .footer_logo {
+                            font-size: 1.5rem;
+                            font-weight: bold;
+                        }
+
+                        .footer_text {
+                            font-size: 1rem;
+                            color: #555;
+                            margin-top: 10px;
+                        }
+
+                        /* Media Queries for Responsive Design */
+                        @media screen and (max-width: 768px) {
+                            .containerBody {
+                                flex: 1 1 45%;
+                                /* On smaller screens, take 45% of the available space */
+                            }
+                        }
+
+                        @media screen and (max-width: 480px) {
+                            .containerBody {
+                                flex: 1 1 100%;
+                                /* On very small screens, stack containers vertically */
+                            }
+                        }
+
+                        /* Optional: To make the footer stay at the bottom */
+                        html,
+                        body {
+                            display: flex;
+                            flex-direction: column;
+                            height: 100%;
+                        }
+
+                        footer {
+                            margin-top: auto;
+                            background-color: #f8f9fa;
+                            padding: 30px 0;
                         }
                     </style>
                 </head>
@@ -348,7 +488,7 @@ $colors = ['white', '#d4edda', '#f8d7da', '#fff3cd', '#e6ccb2']; // white, green
                                             style="max-width: 100px; height: 100px;">
                                     </div>
                                     <div>
-                                        <h2 class="footer_logo">HIU at Teaching Hospital</h2>
+                                        <h2 class="footer_logo">Health Information Unit (HIU)</h2>
                                         <p>The Health Information Unit (HIU) at Teaching Hospital Jaffna ensures reliable IT infrastructure, including server and network management, X-ray systems, PC maintenance, website updates, and custom application development, to support efficient healthcare delivery.</p>
                                     </div>
                                 </div>

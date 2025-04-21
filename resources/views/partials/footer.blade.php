@@ -6,7 +6,7 @@
                     style="max-width: 100px; height: 100px;">
             </div>
             <div>
-                <h2 class="footer_logo">HIU at Teaching Hospital</h2>
+                <h2 class="footer_logo">Health Information Unit (HIU)</h2>
                 <p>The Health Information Unit (HIU) at Teaching Hospital Jaffna ensures reliable IT infrastructure, including server and network management, X-ray systems, PC maintenance, website updates, and custom application development, to support efficient healthcare delivery.</p>
             </div>
         </div>

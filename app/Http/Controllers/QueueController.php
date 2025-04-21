@@ -107,6 +107,7 @@ class QueueController extends Controller
 
         $subQueueData = $subQueues->map(function ($subQueue) {
             return [
+                'clinic_id' => $subQueue->clinic_id,
                 'queue_number' => $subQueue->queue_number,
                 'current_number' => $subQueue->current_number,
                 'next_number' => $subQueue->next_number
