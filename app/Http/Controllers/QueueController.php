@@ -67,7 +67,7 @@ class QueueController extends Controller
         $subQueue->next_number += 1;
         $subQueue->save();
 
-        return redirect()->route('queues.index', ['clinicId' => $clinicId]);
+        return response()->json(['success' => true]);
     }
 
     public function previous($clinicId, $queueNumber)
@@ -83,7 +83,7 @@ class QueueController extends Controller
             $subQueue->save();
         }
 
-        return redirect()->route('queues.index', ['clinicId' => $clinicId]);
+        return response()->json(['success' => true]);
     }
 
     public function reset($clinicId, $queueNumber)
@@ -97,8 +97,52 @@ class QueueController extends Controller
         $subQueue->next_number = 2;
         $subQueue->save();
 
-        return redirect()->route('queues.index', ['clinicId' => $clinicId]);
+        return response()->json(['success' => true]);
     }
+
+    // public function next($clinicId, $queueNumber)
+    // {
+    //     $subQueue = SubQueue::firstOrCreate(
+    //         ['clinic_id' => $clinicId, 'queue_number' => $queueNumber],
+    //         ['current_number' => 1, 'next_number' => 2]
+    //     );
+
+    //     $subQueue->current_number = $subQueue->next_number;
+    //     $subQueue->next_number += 1;
+    //     $subQueue->save();
+
+    //     return redirect()->route('queues.index', ['clinicId' => $clinicId]);
+    // }
+
+    // public function previous($clinicId, $queueNumber)
+    // {
+    //     $subQueue = SubQueue::firstOrCreate(
+    //         ['clinic_id' => $clinicId, 'queue_number' => $queueNumber],
+    //         ['current_number' => 1, 'next_number' => 2]
+    //     );
+
+    //     if ($subQueue->current_number > 1) {
+    //         $subQueue->next_number = $subQueue->current_number;
+    //         $subQueue->current_number -= 1;
+    //         $subQueue->save();
+    //     }
+
+    //     return redirect()->route('queues.index', ['clinicId' => $clinicId]);
+    // }
+
+    // public function reset($clinicId, $queueNumber)
+    // {
+    //     $subQueue = SubQueue::firstOrCreate(
+    //         ['clinic_id' => $clinicId, 'queue_number' => $queueNumber],
+    //         ['current_number' => 1, 'next_number' => 2]
+    //     );
+
+    //     $subQueue->current_number = 1;
+    //     $subQueue->next_number = 2;
+    //     $subQueue->save();
+
+    //     return redirect()->route('queues.index', ['clinicId' => $clinicId]);
+    // }
 
     public function getLiveQueue($clinicId)
     {
