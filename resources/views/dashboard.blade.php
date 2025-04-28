@@ -148,6 +148,11 @@
 <div class="containerBody">
     <h1>SmartQueue Hospital</h1>
     <div class="button-group">
+        <!-- OPD LAB button -->
+        <button type="button" onclick="openPasswordModal()">
+            <img src="{{ asset('public/images/clinics/2.ico') }}" alt="opd lab" class="clinic-image mb-3">
+            <span class="text-lg font-semibold text-blue-700">OPD LAB</span>
+        </button>
         @foreach ($clinics as $clinic)
         <form action="{{ route('password.check') }}" method="GET" class="clinic-form">
             <input type="hidden" name="clinic_id" value="{{ $clinic->id }}">
@@ -160,7 +165,7 @@
     </div>
 </div>
 
-<!-- Modal -->
+<!-- Password Modal -->
 <div id="passwordModal" class="modal">
     <div class="modal-content">
         <span class="close" id="closeModalBtn">&times;</span>
@@ -178,9 +183,43 @@
         </form>
     </div>
 </div>
+
+<!-- Password Modal 2 -->
+<div id="passwordModal2" class="modal" style="display: none;">
+    <div class="modal-content">
+        <span class="close" id="closeModalBtn2" style="cursor:pointer;">&times;</span>
+        <h2>Enter Password</h2>
+
+        <input type="password" id="passwordInput" placeholder="Enter password" required>
+        <button onclick="verifyPassword2()">Submit</button>
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
+<script>
+    // Open OPD LAB Password Modal
+    function openPasswordModal() {
+        document.getElementById('passwordModal2').style.display = 'block';
+    }
+
+    // Close OPD LAB Password Modal
+    document.getElementById('closeModalBtn2').onclick = function() {
+        document.getElementById('passwordModal2').style.display = 'none';
+    }
+
+    // Verify Password for OPD LAB
+    function verifyPassword2() {
+        const password = document.getElementById('passwordInput').value;
+        if (password === "1234") {
+            window.location.href = "{{ route('opdLab') }}";
+        } else {
+            alert("Wrong password!");
+        }
+    }  
+</script>
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const forms = document.querySelectorAll('.clinic-form');

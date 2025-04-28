@@ -5,6 +5,10 @@ use App\Http\Controllers\QueueController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [DashboardController::class, 'index']);
+Route::get('/opdLab', function () {
+    return view('opdLab');
+})->name('opdLab');
+
 Route::post('/logout', function () {
     session()->flush();
     return redirect('/');
