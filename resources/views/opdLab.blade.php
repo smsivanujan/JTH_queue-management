@@ -175,7 +175,7 @@
 @section('content')
 <h1 style="text-align: center; color: white; font-size: 48px;">OPD LAB</h1>
 
-<div class="containerBody" style="margin-bottom: 40px; background-color:gray;">
+<div class="containerBody" style="margin-bottom: 40px;">
     <h2>OPD LAB QUEUE</h2>
 
     <div class="queue-display" id="queue-display">
@@ -183,13 +183,25 @@
         <input type="number" id="text2" style="font-size: 24px; color: green; font-weight: bold;" placeholder="End Value" />
     </div>
 
-    <div class="button-group">
-        <button style="background:rgb(230, 235, 231);" class="test-btn urine-btn">URINE TEST</button>
-        <button style="background:rgb(63, 158, 85);" class="test-btn fbc-btn">FBC</button>
-        <button style="background:rgb(243, 17, 17);" class="test-btn esr-btn">ESR</button>
+    <div class="button-group" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+        <select id="testSelect" style="width: 200px; margin: 10px 0; padding: 10px; font-weight: bold; height: 45px;">
+            <option value="">-- Select Test --</option>
+            <option value="ESR" data-color="red">ESR</option>
+            <option value="Urine Test" data-color="white">Urine Test</option>
+            <option value="Full Blood Count" data-color="green">FBC</option>
+        </select>
 
-        <button onclick="openSecondScreen()" class="btn btn-info">Open Second Screen</button>
+
+        <button onclick="handleTestChange()" style="background:rgb(243, 17, 17); height: 45px; padding: 0 15px; font-weight: bold; color: white; border: none; border-radius: 6px; cursor: pointer;">
+            CALL
+        </button>
+
+        <button onclick="openSecondScreen()" class="btn btn-info" style="height: 45px; padding: 0 15px; font-weight: bold;">
+            Open Second Screen
+        </button>
     </div>
+
+
 </div>
 
 <div class="containerBodyWrapper">
@@ -210,6 +222,23 @@
 
 @push('scripts')
 <script>
+    function handleTestChange() {
+        const select = document.getElementById("testSelect");
+        const testLabel = select.value;
+
+        if (!testLabel) {
+            alert("Please select a test");
+            return;
+        }
+
+        const selectedOption = select.options[select.selectedIndex];
+        const color = selectedOption.getAttribute("data-color");
+
+        displayTokensWithColor(testLabel, color);
+    }
+</script>
+
+<script>
     let secondScreen = null;
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -227,7 +256,7 @@
     });
 
     function speakNumber(startNumber, endNumber, testLabel, labelcolor) {
-        const msg = new SpeechSynthesisUtterance(`${labelcolor} நிற வரிசை எண்கள் ${startNumber} லிருந்து ${endNumber} வரை வரவும்.`); //பரிசோதனை: ${testLabel}
+        const msg = new SpeechSynthesisUtterance(`${labelcolor} நிற வரிசை எண்கள் ${startNumber} லிருந்து ${endNumber} வரை ${testLabel} முடிவுகளை பெற்றுக்கொள்ள வரவும்.`); //பரிசோதனை: ${testLabel}
         msg.lang = 'ta-IN';
         msg.rate = 0.9;
         msg.pitch = 1;
@@ -261,8 +290,8 @@
                 en: 'Urine Test',
                 ta: 'சிறுநீர் பரிசோதனை',
                 si: 'මූත්‍ර පරීක්ෂණය',
-                encolor: 'white' ,
-                tacolor: 'வெள்ளை' 
+                encolor: 'white',
+                tacolor: 'வெள்ளை'
             },
             'Full Blood Count': {
                 en: 'FBC',
@@ -283,9 +312,10 @@
         // Fetching the translated test name based on the test label
         const label = testLabelContent[testLabel];
         const labelText = `${label.en} / ${label.ta} / ${label.si}`;
-        const labelcolor = label.tacolor; 
-        if (label) {
+        const CalllabelText = label.ta;
+        const labelcolor = label.tacolor;
 
+        if (label) {
             document.getElementById('testLabel').textContent = labelText;
         } else {
             document.getElementById('testLabel').textContent = testLabel; // Default to just testLabel if not found
@@ -303,7 +333,12 @@
         }
 
         if (secondScreen && !secondScreen.closed) {
-            secondScreen.document.getElementById('secondTestLabel').textContent = labelText;
+            // secondScreen.document.getElementById('secondTestLabel').textContent = labelText;
+            const testLabel = secondScreen.document.getElementById('secondTestLabel');
+            if (testLabel) {
+                testLabel.textContent = labelText;
+                testLabel.style.color = color;
+            }
             const secondTokenDisplay = secondScreen.document.getElementById('secondTokenDisplay');
             secondTokenDisplay.innerHTML = '';
             for (let i = startValue; i <= endValue; i++) {
@@ -315,18 +350,8 @@
             }
         }
 
-        speakNumber(startValue, endValue, testLabel, labelcolor);
+        speakNumber(startValue, endValue, CalllabelText, labelcolor);
     }
-
-    document.querySelector('.urine-btn').onclick = function() {
-        displayTokensWithColor('Urine Test', 'white');
-    };
-    document.querySelector('.fbc-btn').onclick = function() {
-        displayTokensWithColor('Full Blood Count', 'green');
-    };
-    document.querySelector('.esr-btn').onclick = function() {
-        displayTokensWithColor('ESR', 'red');
-    };
 
     function openSecondScreen() {
         if (!secondScreen || secondScreen.closed) {
@@ -511,7 +536,7 @@
                             <img src="http://10.1.1.25/coverpage/JTH.jpg" style="max-height: 100px;" />
                         </header>
                         <h1 style="text-align: center; color: white;font-size: 48px;">OPD LAB</h1>
-                        <h2 style="text-align: center; color: white;font-size: 48px;" id="secondTestLabel" class="test-label">df</h2>
+                        <h2 style="text-align: center; color: white;font-size: 48px;" id="secondTestLabel" class="test-label">WAIT</h2>
                         <div class="containerBodyWrapper">             
                             <div id="secondTokenDisplay" class="containerBody token-display"></div>
                         </div>
