@@ -176,19 +176,31 @@
 <h1 style="text-align: center; color: white; font-size: 48px;">OPD LAB</h1>
 
 <div class="containerBody" style="margin-bottom: 40px;">
-    <h2>OPD LAB QUEUE</h2>
-
-    <div class="queue-display" id="queue-display">
-        <input type="number" id="text1" style="font-size: 24px; color: green; font-weight: bold;" placeholder="Start Value" />
-        <input type="number" id="text2" style="font-size: 24px; color: green; font-weight: bold;" placeholder="End Value" />
+    <div style="display: flex; flex-direction: row; justify-content: center; align-items: flex-start; gap: 20px; margin: 20px 0; flex-wrap: nowrap;">
+        <div style="flex: 0 0 auto; display: flex; flex-direction: column;">
+            <label for="text1" style="font-size: 18px; font-weight: 600; margin-bottom: 5px; color: #333;">Start Value</label>
+            <input
+                type="number"
+                id="text1"
+                placeholder="Start Value"
+                style="font-size: 24px; font-weight: bold; color: green; padding: 10px 15px; border: 2px solid #ccc; border-radius: 8px; width: 220px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);" />
+        </div>
+        <div style="flex: 0 0 auto; display: flex; flex-direction: column;">
+            <label for="text2" style="font-size: 18px; font-weight: 600; margin-bottom: 5px; color: #333;">End Value</label>
+            <input
+                type="number"
+                id="text2"
+                placeholder="End Value"
+                style="font-size: 24px; font-weight: bold; color: green; padding: 10px 15px; border: 2px solid #ccc; border-radius: 8px; width: 220px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);" />
+        </div>
     </div>
 
     <div class="button-group" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
         <select id="testSelect" style="width: 200px; margin: 10px 0; padding: 10px; font-weight: bold; height: 45px;">
             <option value="">-- Select Test --</option>
-            <option value="ESR" data-color="red">ESR</option>
-            <option value="Urine Test" data-color="white">Urine Test</option>
-            <option value="Full Blood Count" data-color="green">FBC</option>
+            <option value="Urine Test" style="width: 200px; margin: 10px 0; padding: 10px; font-weight: bold; height: 45px;" data-color="white">Urine Test</option>
+            <option value="ESR" style="width: 200px; margin: 10px 0; padding: 10px; font-weight: bold; height: 45px;" data-color="red">ESR</option>
+            <option value="Full Blood Count" style="width: 200px; margin: 10px 0; padding: 10px; font-weight: bold; height: 45px;" data-color="green">FBC</option>
         </select>
 
 
@@ -256,7 +268,17 @@
     });
 
     function speakNumber(startNumber, endNumber, testLabel, labelcolor) {
-        const msg = new SpeechSynthesisUtterance(`${labelcolor} நிற வரிசை எண்கள் ${startNumber} லிருந்து ${endNumber} வரை ${testLabel} முடிவுகளை பெற்றுக்கொள்ள வரவும்.`); //பரிசோதனை: ${testLabel}
+        // const msg = new SpeechSynthesisUtterance(`${labelcolor} நிற வரிசை எண்கள் ${startNumber} லிருந்து ${endNumber} வரை ${testLabel} முடிவுகளை பெற்றுக்கொள்ள வரவும்.`); //பரிசோதனை: ${testLabel}
+        let msg;
+
+        if (startNumber === endNumber) {
+            msg = new SpeechSynthesisUtterance(`${labelcolor} நிற வரிசை எண் ${startNumber} ஆனது  ${testLabel} முடிவுகளை பெற்றுக்கொள்ள வரவும்.`);
+        } else {
+            msg = new SpeechSynthesisUtterance(`${labelcolor} நிற வரிசை எண்கள் ${startNumber} லிருந்து ${endNumber} வரை ${testLabel} முடிவுகளை பெற்றுக்கொள்ள வரவும்.`);
+        }
+
+        window.speechSynthesis.speak(msg);
+
         msg.lang = 'ta-IN';
         msg.rate = 0.9;
         msg.pitch = 1;
@@ -351,6 +373,10 @@
         }
 
         speakNumber(startValue, endValue, CalllabelText, labelcolor);
+
+        document.getElementById("text1").value = "";
+        document.getElementById("text2").value = "";
+        document.getElementById("testSelect").value = "";
     }
 
     function openSecondScreen() {
@@ -364,9 +390,21 @@
             secondScreen.document.write(`
                 <html>
                     <head>
-                        <title>Teaching Hospital Jaffna</title>
+                        <!-- Basic Meta Tags -->
                         <meta charset="utf-8">
+                        <meta http-equiv="X-UA-Compatible" content="IE=edge">
                         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <title>@yield('title', 'Teaching Hospital Jaffna')</title>
+
+                        <!-- SEO Meta Tags -->
+                        <meta name="keywords" content="Health Information Unit, Teaching Hospital Jaffna">
+                        <meta name="description"
+                            content="Health Information Unit (HIU) at Teaching Hospital Jaffna ensures reliable IT infrastructure for efficient healthcare delivery.">
+                        <meta name="author" content="Health Information Unit, Teaching Hospital Jaffna">
+
+                        <!-- CSS Links -->
+                        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+                        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css">
                         <style>
                             /* Basic Styling */
                             html,
