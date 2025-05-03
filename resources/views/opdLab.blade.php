@@ -183,6 +183,7 @@
                 type="number"
                 id="text1"
                 placeholder="Start Value"
+                min="0"
                 style="font-size: 24px; font-weight: bold; color: green; padding: 10px 15px; border: 2px solid #ccc; border-radius: 8px; width: 220px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);" />
         </div>
         <div style="flex: 0 0 auto; display: flex; flex-direction: column;">
@@ -191,6 +192,7 @@
                 type="number"
                 id="text2"
                 placeholder="End Value"
+                min="0"
                 style="font-size: 24px; font-weight: bold; color: green; padding: 10px 15px; border: 2px solid #ccc; border-radius: 8px; width: 220px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);" />
         </div>
     </div>
@@ -574,7 +576,7 @@
                             <img src="http://10.1.1.25/coverpage/JTH.jpg" style="max-height: 100px;" />
                         </header>
                         <h1 style="text-align: center; color: white;font-size: 48px;">OPD LAB</h1>
-                        <h2 style="text-align: center; color: white;font-size: 48px;" id="secondTestLabel" class="test-label">WAIT</h2>
+                        <h2 style="text-align: center; color: white;font-size: 32px;" id="secondTestLabel" class="test-label">WAIT</h2>
                         <div class="containerBodyWrapper">             
                             <div id="secondTokenDisplay" class="containerBody token-display"></div>
                         </div>
