@@ -8,8 +8,16 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        // $clinics = Clinic::all();
-        $clinics = Clinic::has('queues')->get();
-        return view('dashboard', compact('clinics'));
+        // Tenant is guaranteed to be set by IdentifyTenant middleware
+        // EnsureTenantAccess middleware handles redirects if tenant is missing
+        $tenant = app('tenant');
+
+        // Get clinics for current tenant (automatically scoped by TenantScope)
+        // Super Admin sees clinics for the tenant they've entered
+        // Regular users see clinics for their tenant
+        // Note: Show all clinics, not just ones with queues (new clinics may not have queues yet)
+        $clinics = Clinic::orderBy('name')->get();
+        
+        return view('dashboard', compact('clinics', 'tenant'));
     }
 }

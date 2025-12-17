@@ -5,14 +5,17 @@
     <!-- Basic Meta Tags -->
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Teaching Hospital Jaffna')</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>@yield('title', 'SmartQueue - Queue Management System')</title>
 
     <!-- SEO Meta Tags -->
-    <meta name="keywords" content="Health Information Unit, Teaching Hospital Jaffna">
+    <meta name="keywords" content="Queue Management, Service Queue System, Queue Management System">
     <meta name="description"
-        content="Health Information Unit (HIU) at Teaching Hospital Jaffna ensures reliable IT infrastructure for efficient healthcare delivery.">
-    <meta name="author" content="Health Information Unit, Teaching Hospital Jaffna">
+        content="SmartQueue - Modern queue management system. Streamline service flow and improve efficiency.">
+    <meta name="author" content="SmartQueue">
+
+    <!-- CSRF Token -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <!-- CSS Links -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
