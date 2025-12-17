@@ -19,6 +19,20 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css">
 
     @stack('styles')
+    <style>
+        .navbar-brand span {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .nav-link:hover {
+            color: #0d6efd !important;
+        }
+
+        footer p {
+            font-size: 0.9rem;
+        }
+    </style>
+
 </head>
 
 <body>

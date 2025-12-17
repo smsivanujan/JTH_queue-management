@@ -1,92 +1,90 @@
 @extends('layouts.app')
 
 @section('title', 'SmartQueue Hospital')
+
 @push('styles')
 <style>
-    html,
-    body {
+    html, body {
         height: 100%;
         display: flex;
         flex-direction: column;
-        background: linear-gradient(#373B44, #4286f4);
+        background: linear-gradient(135deg, #373B44, #4286f4);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
 
     .header_section {
         position: sticky;
         top: 0;
         z-index: 1000;
-        background-color: #ffffff;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        background-color: #fff;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         padding: 15px 0;
-    }
-
-    .header-content {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100%;
-
-    }
-
-    .logo {
-        display: flex;
-        justify-content: center;
     }
 
     main {
         flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 30px 15px;
     }
 
     .containerBody {
-        max-width: 500px;
-        background: white;
-        padding: 30px;
-        margin: 50px auto;
-        border-radius: 12px;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        max-width: 600px;
+        width: 100%;
+        background: #ffffff;
+        padding: 40px;
+        border-radius: 16px;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.2);
         text-align: center;
-        border: 2px solid #007bff;
+        border: 1px solid #007bff;
+        animation: fadeIn 0.8s ease-in-out;
     }
 
     h1 {
-        font-size: 26px;
+        font-size: 28px;
         font-weight: bold;
-        margin-bottom: 20px;
+        margin-bottom: 30px;
         color: #333;
     }
 
     .button-group {
         display: flex;
         justify-content: center;
-        gap: 10px;
         flex-wrap: wrap;
+        gap: 20px;
     }
 
     button {
-        padding: 12px 18px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 18px 24px;
         font-size: 16px;
-        font-weight: bold;
-        color: green;
+        font-weight: 600;
+        color: #fff;
+        background: linear-gradient(135deg, #007bff, #00c6ff);
         border: none;
-        border-radius: 8px;
+        border-radius: 12px;
         cursor: pointer;
-        transition: transform 0.2s ease, opacity 0.3s ease;
+        transition: all 0.3s ease;
+        min-width: 140px;
     }
 
     button:hover {
-        transform: translateY(-2px);
-        opacity: 0.9;
+        transform: translateY(-3px) scale(1.05);
+        box-shadow: 0 8px 20px rgba(0,123,255,0.4);
     }
 
     .clinic-image {
-        height: 5em;
-        width: auto;
-        max-width: 100%;
-        display: block;
-        margin: 0 auto;
+        height: 60px;
+        width: 60px;
         object-fit: contain;
+        margin-bottom: 8px;
     }
 
+    /* Modal Styles */
     .modal {
         display: none;
         position: fixed;
@@ -96,18 +94,42 @@
         width: 100%;
         height: 100%;
         overflow: auto;
-        background-color: rgba(0, 0, 0, 0.4);
+        background-color: rgba(0,0,0,0.5);
+        animation: fadeIn 0.5s ease;
     }
 
     .modal-content {
         background-color: #fff;
         margin: 10% auto;
         padding: 30px;
-        border: 1px solid #888;
-        border-radius: 12px;
-        width: 90%;
+        border-radius: 16px;
         max-width: 400px;
         text-align: center;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+    }
+
+    .modal-content input[type="password"] {
+        width: 80%;
+        padding: 10px;
+        margin: 15px 0;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        font-size: 16px;
+    }
+
+    .modal-content button {
+        width: 50%;
+        background: #007bff;
+        color: #fff;
+        font-weight: bold;
+        border-radius: 8px;
+        padding: 10px;
+        border: none;
+        transition: 0.3s;
+    }
+
+    .modal-content button:hover {
+        background: #0056b3;
     }
 
     .close {
@@ -118,47 +140,39 @@
         cursor: pointer;
     }
 
-
-    .footer_section {
-        margin-top: auto;
-        background-color: #f8f9fa;
-        padding: 30px 0;
-    }
-
-    .footer_logo {
-        font-size: 1.5rem;
-        font-weight: bold;
-    }
-
-    .footer_text {
-        font-size: 1rem;
-        color: #555;
-        margin-top: 10px;
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 
     @media (max-width: 767px) {
-        .footer_section .container {
-            text-align: center;
+        .button-group {
+            gap: 15px;
+        }
+        .clinic-image {
+            height: 50px;
+            width: 50px;
         }
     }
 </style>
 @endpush
-@section('content')
 
+@section('content')
 <div class="containerBody">
     <h1>SmartQueue Hospital</h1>
     <div class="button-group">
-        <!-- OPD LAB button -->
+        <!-- OPD LAB Button -->
         <button type="button" onclick="openPasswordModal()">
-            <img src="{{ asset('public/images/clinics/2.ico') }}" alt="opd lab" class="clinic-image mb-3">
-            <span class="text-lg font-semibold text-blue-700">OPD LAB</span>
+            <img src="{{ asset('public/images/clinics/2.ico') }}" alt="opd lab" class="clinic-image">
+            OPD LAB
         </button>
+
         @foreach ($clinics as $clinic)
         <form action="{{ route('password.check') }}" method="GET" class="clinic-form">
             <input type="hidden" name="clinic_id" value="{{ $clinic->id }}">
             <button type="submit">
-                <img src="{{ asset('public/images/clinics/' . $clinic->id . '.ico') }}" alt="{{ $clinic->name }}" class="clinic-image mb-3">
-                <span class="text-lg font-semibold text-blue-700">{{ $clinic->name }}</span>
+                <img src="{{ asset('public/images/clinics/' . $clinic->id . '.ico') }}" alt="{{ $clinic->name }}" class="clinic-image">
+                {{ $clinic->name }}
             </button>
         </form>
         @endforeach
@@ -166,66 +180,41 @@
 </div>
 
 <!-- Password Modal -->
-<div id="passwordModal" class="modal">
+<div id="passwordModal2" class="modal">
     <div class="modal-content">
-        <span class="close" id="closeModalBtn">&times;</span>
+        <span class="close" id="closeModalBtn2">&times;</span>
         <h2>Enter Password</h2>
-
-        @if ($errors->any())
-        <p style="color: red;">{{ $errors->first() }}</p>
-        @endif
-
-        <form action="{{ route('password.verify') }}" method="POST">
-            @csrf
-            <input type="hidden" name="clinic_id" id="modalClinicId">
-            <input type="password" name="password" placeholder="Enter password" required>
-            <button type="submit">Submit</button>
-        </form>
-    </div>
-</div>
-
-<!-- Password Modal 2 -->
-<div id="passwordModal2" class="modal" style="display: none;">
-    <div class="modal-content">
-        <span class="close" id="closeModalBtn2" style="cursor:pointer;">&times;</span>
-        <h2>Enter Password</h2>
-
-        <input type="password" id="passwordInput" placeholder="Enter password" required>
+        <input type="password" id="passwordInput" placeholder="Enter password">
         <button onclick="verifyPassword2()">Submit</button>
     </div>
 </div>
-
 @endsection
 
 @push('scripts')
 <script>
-    // Open OPD LAB Password Modal
     function openPasswordModal() {
         document.getElementById('passwordModal2').style.display = 'block';
     }
 
-    // Close OPD LAB Password Modal
     document.getElementById('closeModalBtn2').onclick = function() {
         document.getElementById('passwordModal2').style.display = 'none';
     }
 
-    // Verify Password for OPD LAB
     function verifyPassword2() {
         const password = document.getElementById('passwordInput').value;
-        if (password === "1234") {
+        if(password === "1234") {
             window.location.href = "{{ route('opdLab') }}";
         } else {
             alert("Wrong password!");
         }
-    }  
-</script>
+    }
 
-<script>
+    // Clinic password modal
     document.addEventListener('DOMContentLoaded', function() {
         const forms = document.querySelectorAll('.clinic-form');
         const modal = document.getElementById('passwordModal');
         const closeModalBtn = document.getElementById('closeModalBtn');
-        const clinicIdInput = document.getElementById('modalClinicId'); // updated to match the input ID
+        const clinicIdInput = document.getElementById('modalClinicId');
 
         forms.forEach(form => {
             form.addEventListener('submit', function(e) {
@@ -241,9 +230,7 @@
         });
 
         window.addEventListener('click', function(event) {
-            if (event.target == modal) {
-                modal.style.display = 'none';
-            }
+            if (event.target == modal) modal.style.display = 'none';
         });
     });
 </script>

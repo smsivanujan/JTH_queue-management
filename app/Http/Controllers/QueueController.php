@@ -18,17 +18,17 @@ class QueueController extends Controller
     public function verifyPassword(Request $request)
     {
         $queue = Queue::where('clinic_id', $request->clinic_id)->first();
-        if ($request->password ===  $queue->password) {
-            // Add clinic ID to session
+        if ($queue && $request->password === $queue->password) {
             $allowedClinics = session()->get('allowed_clinics', []);
             $allowedClinics[] = $request->clinic_id;
             session(['allowed_clinics' => $allowedClinics]);
 
-            return redirect('/' . $request->clinic_id);
+            return response()->json(['success' => true]);
         }
 
-        return back()->withErrors(['Invalid password']);
+        return response()->json(['success' => false]);
     }
+
 
     public function index($clinicId)
     {
