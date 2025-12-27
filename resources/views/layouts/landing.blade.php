@@ -50,7 +50,7 @@
                     <a href="{{ route('pricing') }}" class="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors {{ request()->routeIs('pricing') ? 'text-blue-600 font-semibold' : '' }}">
                         Pricing
                     </a>
-                    <a href="/login" class="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors">
+                    <a href="{{ route('login') }}" class="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors">
                         Login
                     </a>
                     <a href="{{ route('tenant.register') }}" class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:shadow-lg transition-all">
@@ -82,7 +82,7 @@
                 <a href="{{ route('pricing') }}" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md {{ request()->routeIs('pricing') ? 'text-blue-600 bg-blue-50' : '' }}">
                     Pricing
                 </a>
-                <a href="/login" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md">
+                <a href="{{ route('login') }}" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md">
                     Login
                 </a>
                 <a href="{{ route('tenant.register') }}" class="block px-3 py-2 text-base font-medium bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-md text-center hover:shadow-lg transition-all">
@@ -117,7 +117,7 @@
                     <ul class="space-y-2">
                         <li><a href="{{ route('home') }}" class="text-sm text-gray-600 hover:text-blue-600 transition-colors">Home</a></li>
                         <li><a href="{{ route('pricing') }}" class="text-sm text-gray-600 hover:text-blue-600 transition-colors">Pricing</a></li>
-                        <li><a href="/login" class="text-sm text-gray-600 hover:text-blue-600 transition-colors">Login</a></li>
+                        <li><a href="{{ route('login') }}" class="text-sm text-gray-600 hover:text-blue-600 transition-colors">Login</a></li>
                         <li><a href="{{ route('tenant.register') }}" class="text-sm text-gray-600 hover:text-blue-600 transition-colors">Register</a></li>
                     </ul>
                 </div>

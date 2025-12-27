@@ -17,7 +17,7 @@ class DashboardController extends Controller
             return redirect()->route('app.onboarding.index');
         }
 
-        // Get clinics for current tenant (automatically scoped by TenantScope)
+        // Get clinics (locations) for current tenant (automatically scoped by TenantScope)
         // Super Admin sees clinics for the tenant they've entered
         // Regular users see clinics for their tenant
         // Note: Show all clinics, not just ones with queues (new clinics may not have queues yet)

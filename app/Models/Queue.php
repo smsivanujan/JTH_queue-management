@@ -16,6 +16,7 @@ class Queue extends Model
 
     protected $fillable = [
         'display',
+        'type', // 'sequential' or 'range'
         'password',
         'password_hash',
         'password_migrated_at',
@@ -216,5 +217,21 @@ class Queue extends Model
     public function subQueues(): HasMany
     {
         return $this->hasMany(SubQueue::class, 'clinic_id');
+    }
+
+    /**
+     * Check if queue is range-based type
+     */
+    public function isRangeType(): bool
+    {
+        return $this->type === 'range';
+    }
+
+    /**
+     * Check if queue is sequential type
+     */
+    public function isSequentialType(): bool
+    {
+        return $this->type === 'sequential' || empty($this->type);
     }
 }

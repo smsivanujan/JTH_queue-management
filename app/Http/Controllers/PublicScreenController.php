@@ -21,7 +21,9 @@ class PublicScreenController extends Controller
     public function queue(Request $request, string $screenToken)
     {
         // Validate screen token against active_screens table
-        $screen = ActiveScreen::where('screen_token', $screenToken)
+        // Must remove global scope because this is a public route with no tenant context
+        $screen = ActiveScreen::withoutGlobalScopes()
+            ->where('screen_token', $screenToken)
             ->where('screen_type', 'queue')
             ->first();
 
@@ -29,9 +31,10 @@ class PublicScreenController extends Controller
             abort(404, 'Screen not found or expired');
         }
 
-        // Check if screen is still active (heartbeat within 30 seconds)
-        if (!$screen->isActive(30)) {
-            abort(404, 'Screen session has expired');
+        // Check if screen is still active (heartbeat within 120 seconds for public access)
+        // Extended timeout to allow for QR code scanning and initial page load
+        if (!$screen->isActive(120)) {
+            abort(404, 'Screen session has expired. Please generate a new QR code.');
         }
 
         // Get clinic (required for queue screens)
@@ -44,9 +47,9 @@ class PublicScreenController extends Controller
             abort(404, 'Clinic not found');
         }
 
-        // Verify tenant isolation (screen already scoped by TenantScope, but double-check)
-        // Note: TenantScope will automatically filter, but we verify explicitly for security
-        $tenant = $screen->tenant;
+        // Verify tenant isolation
+        // Load tenant explicitly without global scopes since we're in a public route
+        $tenant = \App\Models\Tenant::find($screen->tenant_id);
         if (!$tenant || !$tenant->is_active) {
             abort(404, 'Invalid tenant');
         }
@@ -92,11 +95,14 @@ class PublicScreenController extends Controller
     public function queueApi(Request $request, string $screenToken)
     {
         // Validate screen token
-        $screen = ActiveScreen::where('screen_token', $screenToken)
+        // Must remove global scope because this is a public route with no tenant context
+        $screen = ActiveScreen::withoutGlobalScopes()
+            ->where('screen_token', $screenToken)
             ->where('screen_type', 'queue')
             ->first();
 
-        if (!$screen || !$screen->isActive(30)) {
+        // Extended timeout for public API access
+        if (!$screen || !$screen->isActive(120)) {
             return response()->json(['error' => 'Screen not found or expired'], 404);
         }
 
@@ -122,7 +128,7 @@ class PublicScreenController extends Controller
                 'current_number' => $subQueue->current_number,
                 'next_number' => $subQueue->next_number
             ];
-        });
+        })->values()->toArray(); // Ensure proper array format
 
         return response()->json([
             'subQueues' => $subQueueData
@@ -141,7 +147,9 @@ class PublicScreenController extends Controller
     public function pair(Request $request, string $screenToken, string $type)
     {
         // Validate screen token and type
-        $screen = ActiveScreen::where('screen_token', $screenToken)
+        // Must remove global scope because this is a public route with no tenant context
+        $screen = ActiveScreen::withoutGlobalScopes()
+            ->where('screen_token', $screenToken)
             ->where('screen_type', $type)
             ->first();
 
@@ -149,9 +157,10 @@ class PublicScreenController extends Controller
             abort(404, 'Screen not found or expired');
         }
 
-        // Check if screen is still active (heartbeat within 30 seconds)
-        if (!$screen->isActive(30)) {
-            abort(404, 'Screen session has expired');
+        // Check if screen is still active (heartbeat within 120 seconds for public access)
+        // Extended timeout to allow for QR code scanning and initial page load
+        if (!$screen->isActive(120)) {
+            abort(404, 'Screen session has expired. Please generate a new QR code.');
         }
 
         // Verify tenant isolation

@@ -60,7 +60,7 @@ class VerifyServiceAccess
         
         if (!$serviceVerified) {
             // Redirect to dashboard or show error
-            return redirect()->route('dashboard')
+            return redirect()->route('app.dashboard')
                 ->withErrors(['message' => "Access to {$service->name} requires password verification."]);
         }
         

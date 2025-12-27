@@ -30,10 +30,10 @@
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 min-h-screen p-4 sm:p-6 lg:p-8 xl:p-12">
-    <div class="max-w-[1920px] mx-auto">
+<body class="bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 min-h-screen p-4 sm:p-6 lg:p-8 xl:p-12 flex items-center justify-center">
+    <div class="max-w-[1920px] mx-auto w-full flex flex-col items-center">
         <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-8xl font-bold text-white text-center mb-6 sm:mb-8 lg:mb-12 break-words px-4">{{ $clinic->name }}</h1>
-        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 xl:gap-10">
+        <div class="flex flex-wrap justify-center items-start gap-4 sm:gap-6 lg:gap-8 xl:gap-10 w-full">
             @php
                 $colorSchemes = [
                     ['bg' => 'bg-gradient-to-br from-blue-600 to-blue-800', 'border' => 'border-blue-400', 'current' => 'text-blue-100', 'next' => 'text-blue-200', 'label' => 'text-blue-100', 'accent' => 'bg-blue-500'],
@@ -50,7 +50,7 @@
                     $colors = $colorSchemes[($i-1) % count($colorSchemes)];
                     $label = ($queue && $queue->display == 3 && $clinic->id == 2) ? ($labels[$i-1] ?? "Queue #{$i}") : "Queue #{$i}";
                 @endphp
-                <div class="{{ $colors['bg'] }} rounded-2xl sm:rounded-3xl shadow-2xl border-2 sm:border-4 {{ $colors['border'] }} p-6 sm:p-8 lg:p-10 xl:p-12 queue-active">
+                <div class="{{ $colors['bg'] }} rounded-2xl sm:rounded-3xl shadow-2xl border-2 sm:border-4 {{ $colors['border'] }} p-6 sm:p-8 lg:p-10 xl:p-12 queue-active w-full sm:w-[48%] lg:w-[31%] max-w-md">
                     <div class="mb-4 sm:mb-6 lg:mb-8">
                         <div class="flex items-center justify-between mb-2 sm:mb-3 lg:mb-4">
                             <h4 class="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold {{ $colors['label'] }} break-words">{{ $label }}</h4>
@@ -58,14 +58,27 @@
                         </div>
                         <div class="h-1 sm:h-1.5 w-16 sm:w-24 lg:w-32 {{ $colors['accent'] }} rounded-full"></div>
                     </div>
-                    <div class="bg-black/30 backdrop-blur-md rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-10 xl:p-12 mb-4 sm:mb-6 border-2 border-white/20">
-                        <p class="text-xs sm:text-sm md:text-base lg:text-lg font-bold {{ $colors['label'] }} uppercase tracking-widest mb-3 sm:mb-4 lg:mb-6 text-center">Current Number</p>
-                        <span id="current-number-{{ $i }}" class="text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl 2xl:text-[12rem] font-black {{ $colors['current'] }} block text-center leading-none" style="text-shadow: 2px 4px 8px rgba(0, 0, 0, 0.1);">{{ $subQueue->current_number }}</span>
-                    </div>
-                    <div class="bg-black/20 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 border border-white/10">
-                        <p class="text-xs sm:text-sm font-semibold {{ $colors['label'] }} uppercase tracking-wider mb-2 sm:mb-3 text-center">Next Number</p>
-                        <span id="next-number-{{ $i }}" class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black {{ $colors['next'] }} block text-center leading-none" style="text-shadow: 2px 4px 8px rgba(0, 0, 0, 0.1);">{{ $subQueue->next_number }}</span>
-                    </div>
+                    @if($queue && $queue->isRangeType())
+                        <!-- Range-based Display -->
+                        <div class="bg-black/30 backdrop-blur-md rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-10 xl:p-12 mb-4 sm:mb-6 border-2 border-white/20">
+                            <p class="text-xs sm:text-sm md:text-base lg:text-lg font-bold {{ $colors['label'] }} uppercase tracking-widest mb-3 sm:mb-4 lg:mb-6 text-center">Range Display</p>
+                            <div class="flex items-center justify-center gap-3 sm:gap-4 lg:gap-6">
+                                <span id="range-start-{{ $i }}" class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl 2xl:text-9xl font-black {{ $colors['current'] }} block text-center leading-none" style="text-shadow: 2px 4px 8px rgba(0, 0, 0, 0.1);">{{ $subQueue->current_number }}</span>
+                                <span class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black {{ $colors['label'] }}">-</span>
+                                <span id="range-end-{{ $i }}" class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl 2xl:text-9xl font-black {{ $colors['current'] }} block text-center leading-none" style="text-shadow: 2px 4px 8px rgba(0, 0, 0, 0.1);">{{ $subQueue->next_number }}</span>
+                            </div>
+                        </div>
+                    @else
+                        <!-- Sequential Display -->
+                        <div class="bg-black/30 backdrop-blur-md rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-10 xl:p-12 mb-4 sm:mb-6 border-2 border-white/20">
+                            <p class="text-xs sm:text-sm md:text-base lg:text-lg font-bold {{ $colors['label'] }} uppercase tracking-widest mb-3 sm:mb-4 lg:mb-6 text-center">Current Number</p>
+                            <span id="current-number-{{ $i }}" class="text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl 2xl:text-[12rem] font-black {{ $colors['current'] }} block text-center leading-none" style="text-shadow: 2px 4px 8px rgba(0, 0, 0, 0.1);">{{ $subQueue->current_number }}</span>
+                        </div>
+                        <div class="bg-black/20 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 border border-white/10">
+                            <p class="text-xs sm:text-sm font-semibold {{ $colors['label'] }} uppercase tracking-wider mb-2 sm:mb-3 text-center">Next Number</p>
+                            <span id="next-number-{{ $i }}" class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black {{ $colors['next'] }} block text-center leading-none" style="text-shadow: 2px 4px 8px rgba(0, 0, 0, 0.1);">{{ $subQueue->next_number }}</span>
+                        </div>
+                    @endif
                 </div>
             @endforeach
         </div>
@@ -107,21 +120,40 @@
             });
         }
 
+        // Queue type from server
+        const isRangeType = @json($queue && $queue->isRangeType() ? true : false);
+        
         // Apply cached data to UI
         window.applyCachedData = function(data) {
             if (!data || !data.subQueues) return;
             
             data.subQueues.forEach((sq) => {
                 const queueNumber = sq.queue_number;
-                const curEl = document.getElementById(`current-number-${queueNumber}`);
-                const nextEl = document.getElementById(`next-number-${queueNumber}`);
                 
-                if (curEl) {
-                    curEl.textContent = sq.current_number;
-                }
-                
-                if (nextEl) {
-                    nextEl.textContent = sq.next_number;
+                if(isRangeType) {
+                    // Range-based update
+                    const rangeStartEl = document.getElementById(`range-start-${queueNumber}`);
+                    const rangeEndEl = document.getElementById(`range-end-${queueNumber}`);
+                    
+                    if (rangeStartEl) {
+                        rangeStartEl.textContent = sq.current_number;
+                    }
+                    
+                    if (rangeEndEl) {
+                        rangeEndEl.textContent = sq.next_number;
+                    }
+                } else {
+                    // Sequential update
+                    const curEl = document.getElementById(`current-number-${queueNumber}`);
+                    const nextEl = document.getElementById(`next-number-${queueNumber}`);
+                    
+                    if (curEl) {
+                        curEl.textContent = sq.current_number;
+                    }
+                    
+                    if (nextEl) {
+                        nextEl.textContent = sq.next_number;
+                    }
                 }
             });
         };
@@ -133,7 +165,10 @@
         
         // Update queue UI
         function updateQueueUI(data) {
-            if (!data || !data.subQueues) return;
+            if (!data || !data.subQueues) {
+                console.warn('updateQueueUI: No data or subQueues', data);
+                return;
+            }
             
             // Cache successful response
             if (offlineFallback) {
@@ -143,39 +178,112 @@
             // Update UI
             data.subQueues.forEach((sq) => {
                 const queueNumber = sq.queue_number;
-                const curEl = document.getElementById(`current-number-${queueNumber}`);
-                const nextEl = document.getElementById(`next-number-${queueNumber}`);
                 
-                if (curEl) {
-                    // Check if number changed and add animation
-                    if (sq.current_number !== parseInt(curEl.textContent)) {
-                        curEl.classList.add('number-update');
-                        curEl.textContent = sq.current_number;
-                        setTimeout(() => curEl.classList.remove('number-update'), 500);
+                if(isRangeType) {
+                    // Range-based update
+                    const rangeStartElId = `range-start-${queueNumber}`;
+                    const rangeEndElId = `range-end-${queueNumber}`;
+                    const rangeStartEl = document.getElementById(rangeStartElId);
+                    const rangeEndEl = document.getElementById(rangeEndElId);
+                    
+                    console.log(`Updating range queue ${queueNumber}: start=${sq.current_number}, end=${sq.next_number}`, {
+                        rangeStartElId,
+                        rangeEndElId,
+                        rangeStartElFound: !!rangeStartEl,
+                        rangeEndElFound: !!rangeEndEl
+                    });
+                    
+                    if (rangeStartEl) {
+                        const oldStart = parseInt(rangeStartEl.textContent.trim()) || 0;
+                        const newStart = parseInt(sq.current_number) || 0;
+                        
+                        rangeStartEl.textContent = sq.current_number;
+                        
+                        if (oldStart !== newStart) {
+                            rangeStartEl.classList.add('number-update');
+                            setTimeout(() => rangeStartEl.classList.remove('number-update'), 500);
+                            console.log(`Queue ${queueNumber} range start changed: ${oldStart} -> ${newStart}`);
+                        }
                     } else {
-                        curEl.textContent = sq.current_number;
+                        console.warn(`Element not found: ${rangeStartElId}`);
                     }
-                }
-                
-                if (nextEl) {
-                    nextEl.textContent = sq.next_number;
+                    
+                    if (rangeEndEl) {
+                        const oldEnd = parseInt(rangeEndEl.textContent.trim()) || 0;
+                        const newEnd = parseInt(sq.next_number) || 0;
+                        
+                        rangeEndEl.textContent = sq.next_number;
+                        
+                        if (oldEnd !== newEnd) {
+                            rangeEndEl.classList.add('number-update');
+                            setTimeout(() => rangeEndEl.classList.remove('number-update'), 500);
+                            console.log(`Queue ${queueNumber} range end changed: ${oldEnd} -> ${newEnd}`);
+                        }
+                    } else {
+                        console.warn(`Element not found: ${rangeEndElId}`);
+                    }
+                } else {
+                    // Sequential update
+                    const curElId = `current-number-${queueNumber}`;
+                    const nextElId = `next-number-${queueNumber}`;
+                    const curEl = document.getElementById(curElId);
+                    const nextEl = document.getElementById(nextElId);
+                    
+                    console.log(`Updating queue ${queueNumber}: current=${sq.current_number}, next=${sq.next_number}`, {
+                        curElId,
+                        nextElId,
+                        curElFound: !!curEl,
+                        nextElFound: !!nextEl
+                    });
+                    
+                    if (curEl) {
+                        const oldValue = parseInt(curEl.textContent.trim()) || 0;
+                        const newValue = parseInt(sq.current_number) || 0;
+                        
+                        // Always update the text content
+                        curEl.textContent = sq.current_number;
+                        
+                        // Add animation if number changed
+                        if (oldValue !== newValue) {
+                            curEl.classList.add('number-update');
+                            setTimeout(() => curEl.classList.remove('number-update'), 500);
+                            console.log(`Queue ${queueNumber} current number changed: ${oldValue} -> ${newValue}`);
+                        }
+                    } else {
+                        console.warn(`Element not found: ${curElId}`);
+                    }
+                    
+                    if (nextEl) {
+                        nextEl.textContent = sq.next_number;
+                    } else {
+                        console.warn(`Element not found: ${nextElId}`);
+                    }
                 }
             });
         }
         
         // Fetch queue data via API (polling fallback)
         function fetchQueueLive() {
-            const url = `{{ route('public.queue.api', ['screen_token' => $screenToken]) }}`;
+            // Generate signed URL for API endpoint (required by signed middleware)
+            const url = `{{ URL::signedRoute('public.queue.api', ['screen_token' => $screenToken], now()->addHours(24)) }}`;
             const fetchMethod = offlineFallback ? offlineFallback.fetchWithOffline.bind(offlineFallback) : fetch;
             
+            console.log('Fetching queue data from:', url);
+            
             fetchMethod(url)
-                .then(res => res.json())
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error(`HTTP error! status: ${res.status}`);
+                    }
+                    return res.json();
+                })
                 .then(data => {
+                    console.log('Queue data received:', data);
                     updateQueueUI(data);
                 })
                 .catch(err => {
                     // Error handled by offline fallback
-                    console.warn('Queue fetch error:', err.message);
+                    console.error('Queue fetch error:', err);
                 });
         }
 
@@ -225,6 +333,7 @@
         function initializeWebSocket() {
             if (!tenantId || !reverbConfig.appKey) {
                 console.warn('WebSocket configuration missing. Using polling only.');
+                websocketActive = false;
                 return;
             }
             
@@ -249,20 +358,38 @@
                     
                     // Subscribe to queue update channel
                     const channelName = `tenant.${tenantId}.queue.${clinicId}`;
+                    
+                    // Set a timeout to ensure polling starts if WebSocket fails
+                    const wsTimeout = setTimeout(() => {
+                        if (!websocketActive) {
+                            console.warn('WebSocket connection timeout. Falling back to polling.');
+                            websocketActive = false;
+                            startPolling();
+                        }
+                    }, 5000); // 5 second timeout
+                    
                     window.Echo.private(channelName)
                         .listen('.queue.updated', (data) => {
                             console.log('Queue updated via WebSocket:', data);
                             updateQueueUI(data);
+                        })
+                        .error((error) => {
+                            console.error('WebSocket subscription error:', error);
+                            clearTimeout(wsTimeout);
+                            websocketActive = false;
+                            startPolling();
                         });
                     
                     // Handle connection events
                     window.Echo.connector.pusher.connection.bind('connected', () => {
+                        clearTimeout(wsTimeout);
                         websocketActive = true;
                         stopPolling(); // Disable polling when WebSocket is active
                         console.log('WebSocket connected - polling disabled');
                     });
                     
                     window.Echo.connector.pusher.connection.bind('disconnected', () => {
+                        clearTimeout(wsTimeout);
                         websocketActive = false;
                         startPolling(); // Re-enable polling when WebSocket disconnects
                         console.warn('WebSocket disconnected - polling re-enabled');
@@ -270,11 +397,19 @@
                     
                     window.Echo.connector.pusher.connection.bind('error', (error) => {
                         console.error('WebSocket error:', error);
+                        clearTimeout(wsTimeout);
                         websocketActive = false;
                         startPolling(); // Fallback to polling on error
                     });
                     
-                    console.log(`Subscribed to WebSocket channel: ${channelName}`);
+                    window.Echo.connector.pusher.connection.bind('unavailable', () => {
+                        console.warn('WebSocket unavailable. Using polling.');
+                        clearTimeout(wsTimeout);
+                        websocketActive = false;
+                        startPolling();
+                    });
+                    
+                    console.log(`Attempting to subscribe to WebSocket channel: ${channelName}`);
                 } catch (error) {
                     console.error('Failed to initialize WebSocket:', error);
                     // Fallback to polling
@@ -295,11 +430,13 @@
                 offlineFallback.loadCachedData();
             }
             
-            // Initialize WebSocket (will fallback to polling if unavailable)
-            initializeWebSocket();
-            
-            // Start polling as fallback (will be disabled if WebSocket connects)
+            // Always start polling first (most reliable for public screens)
+            // WebSocket will disable polling if it successfully connects
+            console.log('Starting polling for queue updates...');
             startPolling();
+            
+            // Try to initialize WebSocket (will disable polling if successful)
+            initializeWebSocket();
         });
     </script>
 </body>

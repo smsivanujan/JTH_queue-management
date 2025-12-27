@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pair TV Screen - SmartQueue</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body {
@@ -101,25 +101,63 @@
 
     <script>
         // Generate QR code
-        const screenUrl = @json($screenUrl);
+        const screenUrl = @json($screenUrl ?? '');
         const qrCodeElement = document.getElementById('qrcode');
 
-        QRCode.toCanvas(screenUrl, {
-            width: 300,
-            margin: 2,
-            color: {
-                dark: '#000000',
-                light: '#FFFFFF'
+        // Function to generate QR code using QRCodeJS library (different API)
+        function generateQRCode() {
+            if (!screenUrl) {
+                console.error('Screen URL is missing');
+                qrCodeElement.innerHTML = '<p class="text-red-600">Screen URL is missing. Please try generating a new QR code.</p>';
+                return;
             }
-        }, function (error, canvas) {
-            if (error) {
-                console.error('QR code generation error:', error);
-                qrCodeElement.innerHTML = '<p class="text-red-600">Error generating QR code. Please use the URL below.</p>';
-            } else {
+
+            // Check if QRCode library is loaded (QRCodeJS uses 'qrcode' not 'QRCode')
+            if (typeof QRCode === 'undefined') {
+                console.warn('QRCode library not loaded yet, retrying...');
+                setTimeout(function() {
+                    if (typeof QRCode === 'undefined') {
+                        console.error('QRCode library failed to load after retry');
+                        qrCodeElement.innerHTML = '<p class="text-red-600">QR code library failed to load. Please refresh the page or use the URL below.</p>';
+                    } else {
+                        generateQRCode();
+                    }
+                }, 1000);
+                return;
+            }
+
+            // Generate QR code using QRCodeJS library
+            try {
+                // Clear any previous content
                 qrCodeElement.innerHTML = '';
-                qrCodeElement.appendChild(canvas);
+                // Create QRCode instance
+                new QRCode(qrCodeElement, {
+                    text: screenUrl,
+                    width: 300,
+                    height: 300,
+                    colorDark: '#000000',
+                    colorLight: '#FFFFFF',
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+            } catch (error) {
+                console.error('QR code generation exception:', error);
+                qrCodeElement.innerHTML = '<p class="text-red-600">Error generating QR code. Please use the URL below.</p>';
             }
-        });
+        }
+
+        // Wait for page and library to load
+        function initQRCode() {
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', function() {
+                    setTimeout(generateQRCode, 500);
+                });
+            } else {
+                setTimeout(generateQRCode, 500);
+            }
+        }
+
+        // Start initialization
+        initQRCode();
 
         // Copy URL function
         function copyUrl() {
@@ -148,27 +186,36 @@
         }
 
         // Check if URL is expired (client-side check, server-side validation is the real check)
-        const urlParams = new URLSearchParams(new URL(screenUrl).search);
-        const expires = urlParams.get('expires');
-        if (expires) {
-            const expiryTime = parseInt(expires) * 1000; // Convert to milliseconds
-            const timeUntilExpiry = expiryTime - Date.now();
-            
-            if (timeUntilExpiry > 0) {
-                setTimeout(() => {
-                    document.querySelector('.bg-amber-50').innerHTML = `
-                        <div class="flex items-start">
-                            <svg class="w-5 h-5 text-red-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                            <p class="text-red-800 text-sm font-semibold">
-                                This pairing link has expired. Please generate a new QR code.
-                            </p>
-                        </div>
-                    `;
-                    document.querySelector('.bg-amber-50').classList.remove('bg-amber-50', 'border-amber-500');
-                    document.querySelector('.bg-amber-50').classList.add('bg-red-50', 'border-red-500');
-                }, timeUntilExpiry);
+        if (screenUrl) {
+            try {
+                const urlParams = new URLSearchParams(new URL(screenUrl).search);
+                const expires = urlParams.get('expires');
+                if (expires) {
+                    const expiryTime = parseInt(expires) * 1000; // Convert to milliseconds
+                    const timeUntilExpiry = expiryTime - Date.now();
+                    
+                    if (timeUntilExpiry > 0) {
+                        setTimeout(() => {
+                            const warningDiv = document.querySelector('.bg-amber-50');
+                            if (warningDiv) {
+                                warningDiv.innerHTML = `
+                                    <div class="flex items-start">
+                                        <svg class="w-5 h-5 text-red-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                        <p class="text-red-800 text-sm font-semibold">
+                                            This pairing link has expired. Please generate a new QR code.
+                                        </p>
+                                    </div>
+                                `;
+                                warningDiv.classList.remove('bg-amber-50', 'border-amber-500');
+                                warningDiv.classList.add('bg-red-50', 'border-red-500');
+                            }
+                        }, timeUntilExpiry);
+                    }
+                }
+            } catch (error) {
+                console.warn('Error checking URL expiration:', error);
             }
         }
     </script>

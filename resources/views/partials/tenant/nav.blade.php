@@ -26,10 +26,6 @@
                            href="{{ route('app.clinic.index') }}">Clinics</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('app.services.*') || request()->routeIs('app.service.*') ? 'active text-primary fw-bold' : 'text-dark' }}" 
-                           href="{{ route('app.services.list') }}">Services</a>
-                    </li>
-                    <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('app.subscription.*') || request()->routeIs('app.plans.*') ? 'active text-primary fw-bold' : 'text-dark' }}" 
                            href="{{ route('app.subscription.index') }}">
                             <span class="d-none d-md-inline">Billing & Subscription</span>

@@ -39,7 +39,8 @@ class QueueController extends Controller
                 $queue = Queue::create([
                     'clinic_id' => $clinic->id,
                     'tenant_id' => $tenant->id,
-                    'display' => 1 // default display value
+                    'display' => 1, // default display value
+                    'type' => 'sequential' // default to sequential
                 ]);
             } catch (\Exception $e) {
                 \Log::error('QueueController@index: Failed to create queue', [
@@ -70,10 +71,10 @@ class QueueController extends Controller
      */
     public function next(Clinic $clinic, $queueNumber)
     {
-        $request = request();
-        $request->validate([
-            'queueNumber' => ['required', 'integer', 'min:1'],
-        ]);
+        // Validate queueNumber route parameter
+        if (!is_numeric($queueNumber) || (int)$queueNumber < 1) {
+            return response()->json(['success' => false, 'message' => 'Invalid queue number'], 400);
+        }
 
         // Tenant is guaranteed to be set by IdentifyTenant middleware
         $tenant = app()->bound('tenant') ? app('tenant') : null;
@@ -89,6 +90,8 @@ class QueueController extends Controller
         }
 
         // Clinic is already scoped by tenant via route model binding
+        $queueNumber = (int)$queueNumber; // Ensure it's an integer
+        
         $subQueue = SubQueue::firstOrCreate(
             ['clinic_id' => $clinic->id, 'queue_number' => $queueNumber],
             [
@@ -101,6 +104,7 @@ class QueueController extends Controller
         // Ensure tenant_id is set
         if (!$subQueue->tenant_id) {
             $subQueue->tenant_id = $tenant->id;
+            $subQueue->save();
         }
 
         $subQueue->current_number = $subQueue->next_number;
@@ -128,10 +132,10 @@ class QueueController extends Controller
      */
     public function previous(Clinic $clinic, $queueNumber)
     {
-        $request = request();
-        $request->validate([
-            'queueNumber' => ['required', 'integer', 'min:1'],
-        ]);
+        // Validate queueNumber route parameter
+        if (!is_numeric($queueNumber) || (int)$queueNumber < 1) {
+            return response()->json(['success' => false, 'message' => 'Invalid queue number'], 400);
+        }
 
         // Tenant is guaranteed to be set by IdentifyTenant middleware
         $tenant = app()->bound('tenant') ? app('tenant') : null;
@@ -147,6 +151,8 @@ class QueueController extends Controller
         }
 
         // Clinic is already scoped by tenant via route model binding
+        $queueNumber = (int)$queueNumber; // Ensure it's an integer
+        
         $subQueue = SubQueue::firstOrCreate(
             ['clinic_id' => $clinic->id, 'queue_number' => $queueNumber],
             [
@@ -159,6 +165,7 @@ class QueueController extends Controller
         // Ensure tenant_id is set
         if (!$subQueue->tenant_id) {
             $subQueue->tenant_id = $tenant->id;
+            $subQueue->save();
         }
 
         if ($subQueue->current_number > 1) {
@@ -188,10 +195,10 @@ class QueueController extends Controller
      */
     public function reset(Clinic $clinic, $queueNumber)
     {
-        $request = request();
-        $request->validate([
-            'queueNumber' => ['required', 'integer', 'min:1'],
-        ]);
+        // Validate queueNumber route parameter
+        if (!is_numeric($queueNumber) || (int)$queueNumber < 1) {
+            return response()->json(['success' => false, 'message' => 'Invalid queue number'], 400);
+        }
 
         // Tenant is guaranteed to be set by IdentifyTenant middleware
         $tenant = app()->bound('tenant') ? app('tenant') : null;
@@ -207,6 +214,8 @@ class QueueController extends Controller
         }
 
         // Clinic is already scoped by tenant via route model binding
+        $queueNumber = (int)$queueNumber; // Ensure it's an integer
+        
         $subQueue = SubQueue::firstOrCreate(
             ['clinic_id' => $clinic->id, 'queue_number' => $queueNumber],
             [
@@ -219,6 +228,7 @@ class QueueController extends Controller
         // Ensure tenant_id is set
         if (!$subQueue->tenant_id) {
             $subQueue->tenant_id = $tenant->id;
+            $subQueue->save();
         }
 
         $subQueue->current_number = 1;
@@ -275,5 +285,98 @@ class QueueController extends Controller
         return response()->json([
             'subQueues' => $subQueueData
         ]);
+    }
+
+    /**
+     * Update queue type
+     */
+    public function updateType(Request $request, Clinic $clinic)
+    {
+        $tenant = app()->bound('tenant') ? app('tenant') : null;
+        
+        if (!$tenant) {
+            return response()->json(['success' => false, 'message' => 'Tenant not set'], 500);
+        }
+
+        $validated = $request->validate([
+            'type' => ['required', 'in:sequential,range'],
+        ]);
+
+        $queue = Queue::where('clinic_id', $clinic->id)
+            ->where('tenant_id', $tenant->id)
+            ->first();
+
+        if (!$queue) {
+            return response()->json(['success' => false, 'message' => 'Queue not found'], 404);
+        }
+
+        $queue->type = $validated['type'];
+        $queue->save();
+
+        return response()->json(['success' => true, 'type' => $queue->type]);
+    }
+
+    /**
+     * Handle range-based queue update
+     */
+    public function updateRange(Request $request, Clinic $clinic, $queueNumber)
+    {
+        // Validate queueNumber route parameter
+        if (!is_numeric($queueNumber) || (int)$queueNumber < 1) {
+            return response()->json(['success' => false, 'message' => 'Invalid queue number'], 400);
+        }
+
+        $tenant = app()->bound('tenant') ? app('tenant') : null;
+        
+        if (!$tenant) {
+            return response()->json(['success' => false, 'message' => 'Tenant not set'], 500);
+        }
+
+        $validated = $request->validate([
+            'start' => ['required', 'integer', 'min:1'],
+            'end' => ['required', 'integer', 'min:1'],
+        ]);
+
+        if ($validated['end'] < $validated['start']) {
+            return response()->json(['success' => false, 'message' => 'End value must be greater than or equal to start value'], 400);
+        }
+
+        $queueNumber = (int)$queueNumber;
+        
+        $subQueue = SubQueue::firstOrCreate(
+            ['clinic_id' => $clinic->id, 'queue_number' => $queueNumber],
+            [
+                'tenant_id' => $tenant->id,
+                'current_number' => 1,
+                'next_number' => 2
+            ]
+        );
+
+        // Ensure tenant_id is set
+        if (!$subQueue->tenant_id) {
+            $subQueue->tenant_id = $tenant->id;
+            $subQueue->save();
+        }
+
+        // For range-based, we store the range in current_number and next_number
+        // current_number = start, next_number = end
+        $subQueue->current_number = $validated['start'];
+        $subQueue->next_number = $validated['end'];
+        $subQueue->save();
+
+        // Broadcast queue update via WebSocket
+        $subQueues = SubQueue::where('clinic_id', $clinic->id)->get();
+        $subQueueData = $subQueues->map(function ($sq) {
+            return [
+                'clinic_id' => $sq->clinic_id,
+                'queue_number' => $sq->queue_number,
+                'current_number' => $sq->current_number,
+                'next_number' => $sq->next_number
+            ];
+        })->toArray();
+        
+        event(new QueueUpdated($tenant->id, $clinic->id, $subQueueData));
+
+        return response()->json(['success' => true]);
     }
 }

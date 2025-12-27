@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         
         // Alias middleware for easier use
         $middleware->alias([
+            'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
             'tenant' => \App\Http\Middleware\IdentifyTenant::class,
             'tenant.access' => \App\Http\Middleware\EnsureTenantAccess::class,
             'subscription' => \App\Http\Middleware\CheckSubscription::class,

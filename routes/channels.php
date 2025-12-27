@@ -26,13 +26,15 @@ Broadcast::channel('tenant.{tenantId}.queue.{clinicId}', function ($user, $tenan
     // We'll set this header via Echo's auth configuration
     $screenToken = request()->header('X-Screen-Token') ?: request()->input('screen_token');
     if ($screenToken) {
-        $screen = ActiveScreen::where('screen_token', $screenToken)
+        // Use withoutGlobalScopes because we're in a public route without tenant context
+        $screen = ActiveScreen::withoutGlobalScopes()
+            ->where('screen_token', $screenToken)
             ->where('screen_type', 'queue')
             ->where('tenant_id', $tenantId)
             ->where('clinic_id', $clinicId)
             ->first();
             
-        if ($screen && $screen->isActive(30)) {
+        if ($screen && $screen->isActive(120)) { // Extended timeout for public screens
             return ['screen_token' => $screenToken, 'tenant_id' => $tenantId];
         }
     }

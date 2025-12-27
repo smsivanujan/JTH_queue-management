@@ -60,7 +60,7 @@ const screenHeartbeat = {
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') 
                 || this.getCookieValue('XSRF-TOKEN');
             
-            const response = await fetch('/screens/heartbeat', {
+            const response = await fetch('/app/screens/heartbeat', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -103,7 +103,7 @@ const screenHeartbeat = {
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
                 || this.getCookieValue('XSRF-TOKEN');
             
-            const response = await fetch('/screens/register', {
+            const response = await fetch('/app/screens/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -114,6 +114,13 @@ const screenHeartbeat = {
                     clinic_id: clinicId
                 })
             });
+
+            // Check if response is OK
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ message: `HTTP ${response.status}` }));
+                console.error('Screen registration HTTP error:', response.status, errorData);
+                throw new Error(errorData.message || `Registration failed with status ${response.status}`);
+            }
 
             const data = await response.json();
 
@@ -127,15 +134,18 @@ const screenHeartbeat = {
                 if (data.pairing_url) {
                     this.pairingUrls = this.pairingUrls || {};
                     this.pairingUrls[data.screen_token] = data.pairing_url;
+                } else {
+                    console.warn('Screen registration succeeded but no pairing_url was returned');
                 }
                 return data.screen_token;
             } else {
-                console.error('Screen registration failed:', data.message);
-                return null;
+                const errorMsg = data.message || 'Unknown registration error';
+                console.error('Screen registration failed:', errorMsg, data);
+                throw new Error(errorMsg);
             }
         } catch (error) {
             console.error('Screen registration error:', error);
-            return null;
+            throw error; // Re-throw to allow caller to handle
         }
     },
 

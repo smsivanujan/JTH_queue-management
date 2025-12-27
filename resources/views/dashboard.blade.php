@@ -98,10 +98,7 @@
                     Staff
                 </a>
                 <a href="{{ route('app.clinic.index') }}" class="text-xs sm:text-sm {{ request()->routeIs('app.clinic.*') ? 'font-semibold text-blue-600 border-b-2 border-blue-600' : 'font-medium text-gray-600 hover:text-blue-600' }} transition-colors pb-2 sm:pb-3 px-1">
-                    Clinics
-                </a>
-                <a href="{{ route('app.services.list') }}" class="text-xs sm:text-sm {{ request()->routeIs('app.services.*') || request()->routeIs('app.service.*') ? 'font-semibold text-blue-600 border-b-2 border-blue-600' : 'font-medium text-gray-600 hover:text-blue-600' }} transition-colors pb-2 sm:pb-3 px-1">
-                    Services
+                    Locations
                 </a>
                 <a href="{{ route('app.subscription.index') }}" class="hidden sm:inline text-xs sm:text-sm {{ request()->routeIs('app.subscription.*') || request()->routeIs('app.plans.*') ? 'font-semibold text-blue-600 border-b-2 border-blue-600' : 'font-medium text-gray-600 hover:text-blue-600' }} transition-colors pb-2 sm:pb-3 px-1">
                     Billing & Subscription
@@ -176,8 +173,8 @@
             <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
                     <div class="flex items-center justify-between">
                     <div class="min-w-0 flex-1">
-                        <p class="text-xs sm:text-sm font-medium text-gray-600">Total Clinics</p>
-                        <p class="text-2xl sm:text-3xl font-bold text-gray-900 mt-1 sm:mt-2">{{ $clinics->count() + 1 }}</p>
+                        <p class="text-xs sm:text-sm font-medium text-gray-600">Total Locations</p>
+                        <p class="text-2xl sm:text-3xl font-bold text-gray-900 mt-1 sm:mt-2">{{ $clinics->count() }}</p>
                     </div>
                     <div class="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0 ml-3">
                         <svg class="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -201,13 +198,13 @@
             </div>
         </div>
 
-        <!-- Clinics Grid -->
+        <!-- Locations Grid -->
         <div class="mb-6 sm:mb-8">
             <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
-                <h2 class="text-lg sm:text-xl font-bold text-gray-900">Select Clinic</h2>
+                <h2 class="text-lg sm:text-xl font-bold text-gray-900">Select Location</h2>
                 @admin
                     @php
-                        $canCreateMore = \App\Helpers\SubscriptionHelper::canCreateClinic();
+                        $canCreateMoreClinic = \App\Helpers\SubscriptionHelper::canCreateClinic();
                         $currentClinicCount = $clinics->count();
                         $plan = \App\Helpers\SubscriptionHelper::getCurrentPlan();
                         $tenant = app()->bound('tenant') ? app('tenant') : null;
@@ -218,12 +215,12 @@
                         }
                     @endphp
                     <div class="flex items-center gap-2 sm:gap-3">
-                        @if($canCreateMore)
+                        @if($canCreateMoreClinic)
                             <a href="{{ route('app.clinic.create') }}" class="px-3 sm:px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg font-semibold hover:shadow-xl hover:scale-105 transition-all text-xs sm:text-sm touch-manipulation">
                                 <svg class="w-4 h-4 sm:w-5 sm:h-5 inline-block sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                                 </svg>
-                                <span class="hidden xs:inline">Add Clinic</span>
+                                <span class="hidden xs:inline">Add Location</span>
                             </a>
                         @else
                             <div class="relative group">
@@ -231,7 +228,7 @@
                                     <svg class="w-4 h-4 sm:w-5 sm:h-5 inline-block sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                                     </svg>
-                                    <span class="hidden xs:inline">Add Clinic</span>
+                                    <span class="hidden xs:inline">Add Location</span>
                                 </button>
                                 <div class="absolute bottom-full mb-2 right-0 hidden group-hover:block w-64 z-50">
                                     <div class="bg-gray-900 text-white text-xs sm:text-sm rounded-lg py-2 px-3 shadow-lg">
@@ -240,8 +237,8 @@
                                                 <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
                                             </svg>
                                             <div>
-                                                <div class="font-semibold mb-1">Clinic Limit Reached</div>
-                                                <div>You have {{ $currentClinicCount }} of {{ $maxClinics == -1 ? 'unlimited' : $maxClinics }} clinics. <a href="{{ route('app.plans.index') }}" class="underline font-semibold">Upgrade plan</a> to add more.</div>
+                                                <div class="font-semibold mb-1">Location Limit Reached</div>
+                                                <div>You have {{ $currentClinicCount }} of {{ $maxClinics == -1 ? 'unlimited' : $maxClinics }} locations. <a href="{{ route('app.plans.index') }}" class="underline font-semibold">Upgrade plan</a> to add more.</div>
                                             </div>
                                         </div>
                                         <div class="absolute top-full right-4 -mt-1">
@@ -261,18 +258,23 @@
                 @endadmin
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-                <!-- Clinic Cards -->
+                <!-- Location Queue Cards -->
                 @foreach ($clinics as $clinic)
                 <a href="{{ route('app.queues.index', $clinic) }}" class="clinic-card">
                     <div class="w-full bg-white rounded-xl sm:rounded-2xl shadow-lg border-2 border-blue-200 p-4 sm:p-6 hover:shadow-xl hover:border-blue-300 transition-all duration-300 transform hover:-translate-y-1 text-left touch-manipulation">
                         <div class="flex flex-col">
                             <div class="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl sm:rounded-2xl flex items-center justify-center mb-3 sm:mb-4 shadow-lg mx-auto">
-                                <img src="{{ asset('public/images/clinics/' . $clinic->id . '.ico') }}" alt="{{ $clinic->name }}" class="w-10 h-10 sm:w-12 sm:h-12 object-contain">
+                                <img src="{{ asset('public/images/clinics/' . $clinic->id . '.ico') }}" alt="{{ $clinic->name }}" class="w-10 h-10 sm:w-12 sm:h-12 object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                <div class="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center" style="display:none;">
+                                    <svg class="w-8 h-8 sm:w-10 sm:h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                    </svg>
+                                </div>
                             </div>
                             <h3 class="text-base sm:text-lg font-bold text-gray-900 mb-1 sm:mb-2 text-center">{{ $clinic->name }}</h3>
-                            <p class="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4 text-center">Queue Management</p>
-                            <div class="w-full bg-blue-50 rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 border border-blue-200">
-                                <span class="text-xs font-semibold text-blue-700 text-center block">Click to Access</span>
+                            <p class="text-xs sm:text-sm text-gray-600 mb-2 text-center">Queue Management</p>
+                            <div class="w-full bg-blue-50 rounded-lg px-2 sm:px-3 py-1 sm:py-1.5 border border-blue-200 mb-1">
+                                <span class="text-xs font-semibold text-blue-700 text-center block">Queue System</span>
                             </div>
                         </div>
                     </div>
@@ -281,7 +283,7 @@
             </div>
         </div>
 
-        <!-- Empty State (if no clinics) -->
+        <!-- Empty State (if no locations) -->
         @if($clinics->isEmpty())
         <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg border-2 border-gray-200 p-8 sm:p-12 text-center fade-in">
             <div class="w-20 h-20 sm:w-24 sm:h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
@@ -289,54 +291,24 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                 </svg>
             </div>
-            <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-2 sm:mb-3">No Clinics Available</h3>
+            <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-2 sm:mb-3">No Locations Available</h3>
             @admin
                 @php
                     $canCreateMoreClinic = \App\Helpers\SubscriptionHelper::canCreateClinic();
                 @endphp
                 @if($canCreateMoreClinic)
-                    <p class="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8 max-w-md mx-auto">Get started by adding your first clinic. Clinics are locations where queue management and services are provided.</p>
-                    <a href="{{ route('app.clinic.create') }}" class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-semibold hover:shadow-xl hover:scale-105 transition-all touch-manipulation text-sm sm:text-base">
-                        <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                        </svg>
-                        Add Your First Clinic
-                    </a>
-                @else
-                    @unless(auth()->check() && auth()->user()->isSuperAdmin())
-                        <p class="text-sm sm:text-base text-gray-600 mb-4 max-w-md mx-auto">Your clinic limit has been reached. Upgrade your plan to add more clinics.</p>
-                        <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6 max-w-md mx-auto">
-                            <div class="flex items-start gap-3">
-                                <svg class="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
-                                </svg>
-                                <div class="text-left">
-                                    <p class="text-sm font-semibold text-amber-900 mb-1">Clinic Limit Reached</p>
-                                    <p class="text-xs text-amber-800">Your current plan doesn't allow more clinics. Upgrade to add additional clinic locations.</p>
-                                </div>
-                            </div>
-                        </div>
-                        <a href="{{ route('app.plans.index') }}" class="inline-flex items-center gap-2 bg-gradient-to-r from-amber-600 to-orange-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-semibold hover:shadow-xl hover:scale-105 transition-all touch-manipulation text-sm sm:text-base">
+                    <p class="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8 max-w-md mx-auto">Get started by adding your first location to manage queues.</p>
+                    <div class="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
+                        <a href="{{ route('app.clinic.create') }}" class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-semibold hover:shadow-xl hover:scale-105 transition-all touch-manipulation text-sm sm:text-base">
                             <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                             </svg>
-                            Upgrade Plan
+                            Add Your First Location
                         </a>
-                    @endunless
-                @endif
-            @else
-                <p class="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8 max-w-md mx-auto">There are no clinics available yet. Please contact your administrator to add clinics to your organization.</p>
-                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-md mx-auto">
-                    <div class="flex items-start gap-3">
-                        <svg class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
-                        </svg>
-                        <div class="text-left">
-                            <p class="text-sm font-semibold text-blue-900 mb-1">Need Help?</p>
-                            <p class="text-xs text-blue-800">Only administrators can add clinics. Reach out to your admin if you need access to clinic management.</p>
-                        </div>
                     </div>
-                </div>
+                @else
+                    <p class="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8 max-w-md mx-auto">Please contact your administrator to add locations to your organization.</p>
+                @endif
             @endadmin
         </div>
         @endif

@@ -87,6 +87,8 @@ class ClinicController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'password' => ['nullable', 'string', 'min:4', 'max:255'],
+            'queue_type' => ['required', 'in:sequential,range'],
+            'display_count' => ['nullable', 'integer', 'min:1', 'max:10'],
         ]);
 
         try {
@@ -97,6 +99,15 @@ class ClinicController extends Controller
                 'name' => $validated['name'],
                 'password' => $validated['password'] ?? '1234', // Default password if not provided
                 'tenant_id' => $tenant->id,
+            ]);
+
+            // Create queue with the specified type
+            $displayCount = $validated['display_count'] ?? 1;
+            $queue = \App\Models\Queue::withoutGlobalScopes()->create([
+                'clinic_id' => $clinic->id,
+                'tenant_id' => $tenant->id,
+                'display' => $displayCount,
+                'type' => $validated['queue_type'],
             ]);
 
             return redirect()->route('app.clinic.index')

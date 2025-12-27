@@ -95,6 +95,46 @@
                     @enderror
                 </div>
 
+                <!-- Queue Type -->
+                <div>
+                    <label for="queue_type" class="block text-sm font-semibold text-gray-700 mb-2">
+                        Queue Type <span class="text-red-500">*</span>
+                    </label>
+                    <select id="queue_type" 
+                            name="queue_type" 
+                            required
+                            class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-900 text-base touch-manipulation">
+                        <option value="sequential" {{ old('queue_type', 'sequential') === 'sequential' ? 'selected' : '' }}>Sequential (1, 2, 3, 4...)</option>
+                        <option value="range" {{ old('queue_type') === 'range' ? 'selected' : '' }}>Range-Based (Start-End ranges)</option>
+                    </select>
+                    <p class="mt-2 text-xs sm:text-sm text-gray-500">
+                        <strong>Sequential:</strong> Numbers increment one by one (1, 2, 3, 4...).<br>
+                        <strong>Range-Based:</strong> Call multiple numbers at once using start and end values (e.g., 1-5, 10-15).
+                    </p>
+                    @error('queue_type')
+                        <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <!-- Display Count -->
+                <div>
+                    <label for="display_count" class="block text-sm font-semibold text-gray-700 mb-2">
+                        Display Count
+                    </label>
+                    <input type="number" 
+                           id="display_count" 
+                           name="display_count" 
+                           value="{{ old('display_count', 1) }}"
+                           min="1"
+                           max="10"
+                           class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-900 text-base touch-manipulation"
+                           placeholder="Number of display screens">
+                    <p class="mt-2 text-xs sm:text-sm text-gray-500">Number of display screens for this location (1-10).</p>
+                    @error('display_count')
+                        <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
                 <!-- Password -->
                 <div>
                     <label for="password" class="block text-sm font-semibold text-gray-700 mb-2">
@@ -117,11 +157,11 @@
 
                 <!-- Actions -->
                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-6 border-t border-gray-200">
-                    <a href="{{ route('app.onboarding.index') }}" class="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-all text-center text-sm sm:text-base touch-manipulation">
+                    <a href="{{ route('app.onboarding.index') }}" class="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-all text-center text-sm sm:text-base touch-manipulation cursor-pointer" style="pointer-events: auto;">
                         ← Back
                     </a>
-                    <button type="submit" class="px-6 sm:px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg font-semibold hover:shadow-xl hover:scale-105 transition-all text-sm sm:text-base touch-manipulation">
-                        Continue to Service →
+                    <button type="submit" class="px-6 sm:px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg font-semibold hover:shadow-xl hover:scale-105 transition-all text-sm sm:text-base touch-manipulation cursor-pointer" style="pointer-events: auto;">
+                        Complete Setup →
                     </button>
                 </div>
             </form>

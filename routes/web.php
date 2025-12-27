@@ -133,34 +133,12 @@ Route::middleware(['auth', 'tenant', 'tenant.access', 'subscription'])->prefix('
     Route::get('/onboard', [\App\Http\Controllers\OnboardingController::class, 'index'])->name('onboarding.index');
     Route::get('/onboard/clinic', [\App\Http\Controllers\OnboardingController::class, 'clinic'])->name('onboarding.clinic');
     Route::post('/onboard/clinic', [\App\Http\Controllers\OnboardingController::class, 'storeClinic'])->name('onboarding.clinic.store');
-    Route::get('/onboard/service', [\App\Http\Controllers\OnboardingController::class, 'service'])->name('onboarding.service');
-    Route::post('/onboard/service', [\App\Http\Controllers\OnboardingController::class, 'storeService'])->name('onboarding.service.store');
     Route::get('/onboard/complete', [\App\Http\Controllers\OnboardingController::class, 'complete'])->name('onboarding.complete');
     Route::post('/onboard/skip', [\App\Http\Controllers\OnboardingController::class, 'skip'])->name('onboarding.skip');
     
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Service Management routes (admin only)
-    Route::middleware('role:admin')->group(function () {
-        Route::get('/services', [ServiceController::class, 'list'])->name('services.list');
-        Route::get('/services/create', [ServiceController::class, 'create'])->name('services.create');
-        Route::post('/services', [ServiceController::class, 'store'])->name('services.store');
-        Route::get('/services/{service}/edit', [ServiceController::class, 'edit'])->name('services.edit');
-        Route::put('/services/{service}', [ServiceController::class, 'update'])->name('services.update');
-        Route::delete('/services/{service}', [ServiceController::class, 'destroy'])->name('services.destroy');
-    });
-
-    // Generic Service queue routes
-    Route::post('/services/{service}/verify', [ServiceController::class, 'verifyPassword'])
-        ->name('service.verify')
-        ->middleware('throttle:5,1');
-    
-    Route::middleware('service.verify')->group(function () {
-        Route::get('/services/{service}/queue', [ServiceController::class, 'show'])->name('service.show');
-        Route::get('/services/{service}/second-screen', [ServiceController::class, 'secondScreen'])->name('service.second-screen');
-        Route::post('/services/{service}/broadcast', [ServiceController::class, 'broadcastUpdate'])->name('service.broadcast');
-    });
 
     // Screen registration and heartbeat (for second screens)
     Route::middleware('screen.limit')->group(function () {
@@ -178,9 +156,11 @@ Route::middleware(['auth', 'tenant', 'tenant.access', 'subscription'])->prefix('
         
         // Queue management actions (only for users with queue management roles)
         Route::middleware('role:admin,reception,doctor')->group(function () {
+            Route::post('/queues/{clinic}/type', [QueueController::class, 'updateType'])->name('queues.type');
             Route::post('/queues/{clinic}/next/{queueNumber}', [QueueController::class, 'next'])->name('queues.next');
             Route::post('/queues/{clinic}/previous/{queueNumber}', [QueueController::class, 'previous'])->name('queues.previous');
             Route::post('/queues/{clinic}/reset/{queueNumber}', [QueueController::class, 'reset'])->name('queues.reset');
+            Route::post('/queues/{clinic}/range/{queueNumber}', [QueueController::class, 'updateRange'])->name('queues.range');
         });
     });
 

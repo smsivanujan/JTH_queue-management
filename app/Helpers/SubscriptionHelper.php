@@ -83,6 +83,7 @@ class SubscriptionHelper
         return $currentCount < $maxClinics;
     }
 
+
     /**
      * Check if current tenant can add more users
      * Super Admins always return true (unlimited)

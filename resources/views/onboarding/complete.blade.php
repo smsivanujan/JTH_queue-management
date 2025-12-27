@@ -61,19 +61,6 @@
                         </div>
                     @endif
 
-                    @if($service)
-                        <div class="flex items-center gap-4 p-4 bg-white rounded-lg border border-gray-200">
-                            <div class="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                                <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                                </svg>
-                            </div>
-                            <div class="flex-1">
-                                <div class="font-semibold text-gray-900">{{ $service->name }}</div>
-                                <div class="text-sm text-gray-600">Service Queue ({{ ucfirst($service->type) }})</div>
-                            </div>
-                        </div>
-                    @endif
                 </div>
             </div>
 
@@ -86,7 +73,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                         </svg>
                         <div>
-                            <strong class="text-gray-900">Manage your queue:</strong> Open the service queue to start managing customer flow.
+                            <strong class="text-gray-900">Manage your queues:</strong> Open location queues from the dashboard to start managing customer flow.
                         </div>
                     </div>
                     <div class="flex items-start gap-3">
@@ -97,25 +84,12 @@
                             <strong class="text-gray-900">Add more locations:</strong> Create additional locations from the dashboard.
                         </div>
                     </div>
-                    <div class="flex items-start gap-3">
-                        <svg class="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                        </svg>
-                        <div>
-                            <strong class="text-gray-900">Add more services:</strong> Create additional service queues as needed.
-                        </div>
-                    </div>
                 </div>
             </div>
 
             <!-- Actions -->
             <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-4 pt-6 border-t border-gray-200">
-                @if($service)
-                    <a href="{{ route('app.service.show', $service) }}" class="px-6 sm:px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg font-semibold hover:shadow-xl hover:scale-105 transition-all text-center text-sm sm:text-base touch-manipulation">
-                        Open Service Queue
-                    </a>
-                @endif
-                <a href="{{ route('app.dashboard') }}" class="px-6 sm:px-8 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-all text-center text-sm sm:text-base touch-manipulation">
+                <a href="{{ route('app.dashboard') }}" class="px-6 sm:px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg font-semibold hover:shadow-xl hover:scale-105 transition-all text-center text-sm sm:text-base touch-manipulation cursor-pointer" style="pointer-events: auto;">
                     Go to Dashboard
                 </a>
             </div>

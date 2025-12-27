@@ -26,8 +26,8 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
                 <div>
-                    <h1 class="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">Add Clinic</h1>
-                    <p class="text-xs sm:text-sm text-gray-600 mt-1">Add a new clinic to your organization</p>
+                    <h1 class="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">Add Location</h1>
+                    <p class="text-xs sm:text-sm text-gray-600 mt-1">Create a new location with queue management</p>
                 </div>
                 <a href="{{ route('app.clinic.index') }}" class="px-3 sm:px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold transition-all duration-200 transform hover:scale-105 shadow-md text-xs sm:text-sm touch-manipulation">
                     Back to Clinic List
@@ -62,15 +62,39 @@
 
                 <!-- Name -->
                 <div class="mb-4 sm:mb-6">
-                    <label for="name" class="block text-sm font-semibold text-gray-700 mb-2">Clinic Name <span class="text-red-500">*</span></label>
+                    <label for="name" class="block text-sm font-semibold text-gray-700 mb-2">Location Name <span class="text-red-500">*</span></label>
                     <input type="text" 
                            id="name" 
                            name="name" 
                            value="{{ old('name') }}"
                            required
                            class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-900 text-base touch-manipulation"
-                           placeholder="Enter clinic name">
+                           placeholder="Enter location name">
                     @error('name')
+                        <p class="mt-1 text-xs text-red-600 flex items-center">
+                            <svg class="w-3 h-3 mr-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                            </svg>
+                            {{ $message }}
+                        </p>
+                    @enderror
+                </div>
+
+                <!-- Queue Type -->
+                <div class="mb-4 sm:mb-6">
+                    <label for="queue_type" class="block text-sm font-semibold text-gray-700 mb-2">Queue Type <span class="text-red-500">*</span></label>
+                    <select id="queue_type" 
+                            name="queue_type" 
+                            required
+                            class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-900 text-base touch-manipulation">
+                        <option value="sequential" {{ old('queue_type', 'sequential') === 'sequential' ? 'selected' : '' }}>Sequential (1, 2, 3, 4...)</option>
+                        <option value="range" {{ old('queue_type') === 'range' ? 'selected' : '' }}>Range-Based (Start-End ranges)</option>
+                    </select>
+                    <p class="mt-1 text-xs sm:text-sm text-gray-500">
+                        <strong>Sequential:</strong> Numbers increment one by one (1, 2, 3, 4...).<br>
+                        <strong>Range-Based:</strong> Call multiple numbers at once using start and end values (e.g., 1-5, 10-15).
+                    </p>
+                    @error('queue_type')
                         <p class="mt-1 text-xs text-red-600 flex items-center">
                             <svg class="w-3 h-3 mr-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
@@ -91,7 +115,7 @@
                            max="10"
                            class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-900 text-base touch-manipulation"
                            placeholder="Number of display screens">
-                    <p class="mt-1 text-xs sm:text-sm text-gray-500">Number of display screens for this clinic (1-10). This determines how many queue displays can be shown simultaneously.</p>
+                    <p class="mt-1 text-xs sm:text-sm text-gray-500">Number of display screens for this location (1-10). This determines how many queue displays can be shown simultaneously.</p>
                     @error('display_count')
                         <p class="mt-1 text-xs text-red-600 flex items-center">
                             <svg class="w-3 h-3 mr-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -107,7 +131,7 @@
                     <label class="flex items-center justify-between cursor-pointer group">
                         <div class="flex-1">
                             <div class="text-sm font-semibold text-gray-700 mb-1">Status</div>
-                            <p class="text-xs sm:text-sm text-gray-500">Set clinic status. Inactive clinics cannot be accessed.</p>
+                            <p class="text-xs sm:text-sm text-gray-500">Set location status. Inactive locations cannot be accessed.</p>
                         </div>
                         <div class="ml-4">
                             <input type="checkbox" 
@@ -135,7 +159,7 @@
                            minlength="4"
                            class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-900 text-base touch-manipulation"
                            placeholder="Leave empty for default (1234)">
-                    <p class="mt-1 text-xs sm:text-sm text-gray-500">Minimum 4 characters. Leave empty to use default password (1234). This password is used to access the clinic's queue management.</p>
+                    <p class="mt-1 text-xs sm:text-sm text-gray-500">Minimum 4 characters. Leave empty to use default password (1234). This password is used to access the location's queue management.</p>
                     @error('password')
                         <p class="mt-1 text-xs text-red-600 flex items-center">
                             <svg class="w-3 h-3 mr-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
