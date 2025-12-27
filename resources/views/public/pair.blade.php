@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pair TV Screen - SmartQueue Hospital</title>
+    <title>Pair TV Screen - SmartQueue</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -95,7 +95,7 @@
 
         <!-- Footer -->
         <div class="text-center mt-6 text-white/70 text-sm">
-            SmartQueue Hospital Queue Management System
+            SmartQueue Queue Management System
         </div>
     </div>
 

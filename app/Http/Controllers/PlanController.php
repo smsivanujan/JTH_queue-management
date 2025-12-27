@@ -10,6 +10,20 @@ use Illuminate\Http\Request;
 class PlanController extends Controller
 {
     /**
+     * Display available plans for public pricing page (no auth required)
+     */
+    public function publicIndex()
+    {
+        // Get all active plans for public viewing
+        $plans = Plan::where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderBy('price')
+            ->get();
+
+        return view('pricing', compact('plans'));
+    }
+
+    /**
      * Display all available plans (for tenant self-activation)
      */
     public function index()
@@ -73,7 +87,39 @@ class PlanController extends Controller
             'features' => $plan->features ?? [],
         ]);
 
-        return redirect()->route('subscription.index')
+        // Generate invoice for manual payment
+        if ($plan->slug !== 'trial') {
+            $invoice = \App\Services\InvoiceService::generateInvoice($subscription, $plan, \App\Models\Invoice::PAYMENT_METHOD_MANUAL);
+            
+            // Mark as paid immediately for manual activation (since admin/tenant is activating it directly)
+            if ($subscription->status === Subscription::STATUS_ACTIVE) {
+                \App\Services\InvoiceService::markInvoiceAsPaid($subscription, \App\Models\Invoice::PAYMENT_METHOD_MANUAL);
+                
+                // Send payment success email for manual payments (with cooldown)
+                if (!AutomationLog::wasSentRecently($subscription->tenant_id, AutomationLog::TYPE_PAYMENT_SUCCESS, null, 24)) {
+                    try {
+                        $primaryUser = $subscription->tenant->users()->wherePivot('role', 'admin')->first() 
+                            ?? $subscription->tenant->users()->first();
+                        
+                        if ($primaryUser) {
+                            Mail::to($primaryUser->email)->send(new PaymentSuccess($subscription->tenant, $subscription));
+                            AutomationLog::logSent($subscription->tenant_id, AutomationLog::TYPE_PAYMENT_SUCCESS, null, [
+                                'subscription_id' => $subscription->id,
+                                'payment_method' => 'manual',
+                                'recipient' => $primaryUser->email,
+                            ]);
+                        }
+                    } catch (\Exception $e) {
+                        Log::error('Failed to send payment success email', [
+                            'subscription_id' => $subscription->id,
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
+                }
+            }
+        }
+
+        return redirect()->route('app.subscription.index')
             ->with('success', "Successfully activated {$plan->name} plan.");
     }
 
@@ -116,6 +162,35 @@ class PlanController extends Controller
             'ends_at' => $endsAt,
             'features' => $plan->features,
         ]);
+
+        // Generate invoice for manual payment
+        if ($plan->slug !== 'trial' && $plan->price > 0) {
+            $invoice = \App\Services\InvoiceService::generateInvoice($subscription, $plan, \App\Models\Invoice::PAYMENT_METHOD_MANUAL);
+            // Mark as paid immediately for admin activation
+            \App\Services\InvoiceService::markInvoiceAsPaid($subscription, \App\Models\Invoice::PAYMENT_METHOD_MANUAL);
+            
+            // Send payment success email for manual payments (with cooldown)
+            if (!AutomationLog::wasSentRecently($subscription->tenant_id, AutomationLog::TYPE_PAYMENT_SUCCESS, null, 24)) {
+                try {
+                    $primaryUser = $subscription->tenant->users()->wherePivot('role', 'admin')->first() 
+                        ?? $subscription->tenant->users()->first();
+                    
+                    if ($primaryUser) {
+                        Mail::to($primaryUser->email)->send(new PaymentSuccess($subscription->tenant, $subscription));
+                        AutomationLog::logSent($subscription->tenant_id, AutomationLog::TYPE_PAYMENT_SUCCESS, null, [
+                            'subscription_id' => $subscription->id,
+                            'payment_method' => 'manual',
+                            'recipient' => $primaryUser->email,
+                        ]);
+                    }
+                } catch (\Exception $e) {
+                    Log::error('Failed to send payment success email', [
+                        'subscription_id' => $subscription->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+        }
 
         return redirect()->back()
             ->with('success', "Plan '{$plan->name}' activated successfully for {$tenant->name}");

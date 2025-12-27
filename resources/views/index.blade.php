@@ -1,6 +1,6 @@
 @extends('layouts.tenant')
 
-@section('title', 'Queue Management - SmartQueue Hospital')
+@section('title', 'Queue Management - SmartQueue')
 
 @push('styles')
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">

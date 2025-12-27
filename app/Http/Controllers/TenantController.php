@@ -62,6 +62,7 @@ class TenantController extends Controller
             'user_name' => ['required', 'string', 'max:255'],
             'user_email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'confirmed', Password::defaults()],
+            'terms_accepted' => ['accepted'],
         ]);
 
         // Create user account

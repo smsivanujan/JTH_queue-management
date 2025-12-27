@@ -12,6 +12,11 @@ class DashboardController extends Controller
         // EnsureTenantAccess middleware handles redirects if tenant is missing
         $tenant = app('tenant');
 
+        // Check if onboarding is needed
+        if (\App\Http\Controllers\OnboardingController::isOnboardingNeeded()) {
+            return redirect()->route('app.onboarding.index');
+        }
+
         // Get clinics for current tenant (automatically scoped by TenantScope)
         // Super Admin sees clinics for the tenant they've entered
         // Regular users see clinics for their tenant

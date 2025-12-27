@@ -16,9 +16,154 @@ use Illuminate\Support\Facades\Hash;
 class ServiceController extends Controller
 {
     /**
+     * List all services for the current tenant
+     */
+    public function list()
+    {
+        $tenant = app('tenant');
+        $services = Service::orderBy('name')->get();
+        
+        return view('service.list', compact('services', 'tenant'));
+    }
+
+    /**
+     * Show the form for creating a new service
+     */
+    public function create()
+    {
+        $tenant = app('tenant');
+        return view('service.create');
+    }
+
+    /**
+     * Store a newly created service
+     */
+    public function store(Request $request)
+    {
+        $tenant = app('tenant');
+        
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'type' => ['required', 'in:sequential,range'],
+            'password' => ['nullable', 'string', 'min:4', 'max:255'],
+            'is_active' => ['boolean'],
+        ]);
+
+        try {
+            $service = Service::create([
+                'name' => $validated['name'],
+                'type' => $validated['type'],
+                'tenant_id' => $tenant->id,
+                'is_active' => $request->has('is_active') ? (bool) $request->input('is_active') : true,
+            ]);
+
+            // Set password if provided
+            if (!empty($validated['password'])) {
+                $service->setPassword($validated['password']);
+            }
+
+            return redirect()->route('app.services.list')
+                ->with('success', 'Service created successfully.');
+        } catch (\Exception $e) {
+            \Log::error('Service creation failed', [
+                'error' => $e->getMessage(),
+                'tenant_id' => $tenant->id ?? null,
+            ]);
+            
+            return back()
+                ->withInput()
+                ->withErrors(['error' => 'Failed to create service. Error: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Show the form for editing a service
+     */
+    public function edit(Service $service)
+    {
+        $tenant = app('tenant');
+        
+        if ($service->tenant_id !== $tenant->id) {
+            abort(403, 'Service not found.');
+        }
+
+        return view('service.edit', compact('service'));
+    }
+
+    /**
+     * Update the specified service
+     */
+    public function update(Request $request, Service $service)
+    {
+        $tenant = app('tenant');
+        
+        if ($service->tenant_id !== $tenant->id) {
+            abort(403, 'Service not found.');
+        }
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'type' => ['required', 'in:sequential,range'],
+            'password' => ['nullable', 'string', 'min:4', 'max:255'],
+            'is_active' => ['boolean'],
+        ]);
+
+        try {
+            $service->update([
+                'name' => $validated['name'],
+                'type' => $validated['type'],
+                'is_active' => $request->has('is_active') ? (bool) $request->input('is_active') : true,
+            ]);
+
+            // Update password if provided
+            if (!empty($validated['password'])) {
+                $service->setPassword($validated['password']);
+            }
+
+            return redirect()->route('app.services.list')
+                ->with('success', 'Service updated successfully.');
+        } catch (\Exception $e) {
+            \Log::error('Service update failed', [
+                'error' => $e->getMessage(),
+                'service_id' => $service->id,
+            ]);
+            
+            return back()
+                ->withInput()
+                ->withErrors(['error' => 'Failed to update service. Error: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Remove the specified service
+     */
+    public function destroy(Service $service)
+    {
+        $tenant = app('tenant');
+        
+        if ($service->tenant_id !== $tenant->id) {
+            abort(403, 'Service not found.');
+        }
+
+        try {
+            $service->delete();
+            return redirect()->route('app.services.list')
+                ->with('success', 'Service deleted successfully.');
+        } catch (\Exception $e) {
+            \Log::error('Service deletion failed', [
+                'error' => $e->getMessage(),
+                'service_id' => $service->id,
+            ]);
+            
+            return back()
+                ->withErrors(['error' => 'Failed to delete service. Please try again.']);
+        }
+    }
+
+    /**
      * Show service queue management page
      */
-    public function index(Service $service)
+    public function show(Service $service)
     {
         // Tenant is guaranteed to be set by IdentifyTenant middleware
         $tenant = app('tenant');
@@ -30,7 +175,7 @@ class ServiceController extends Controller
 
         $labels = $service->labels;
 
-        return view('service.index', compact('service', 'labels'));
+        return view('service.show', compact('service', 'labels'));
     }
 
     /**

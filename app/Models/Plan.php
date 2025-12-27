@@ -20,6 +20,7 @@ class Plan extends Model
         'trial_days',
         'is_active',
         'sort_order',
+        'stripe_price_id',
     ];
 
     protected $casts = [

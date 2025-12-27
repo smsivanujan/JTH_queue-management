@@ -55,7 +55,7 @@ class StaffController extends Controller
             $subscription = $tenant->subscription;
             $maxUsers = $subscription ? ($subscription->max_users ?? ($plan ? $plan->max_users : 'N/A')) : ($plan ? $plan->max_users : 'N/A');
             
-            return redirect()->route('staff.index')
+            return redirect()->route('app.staff.index')
                 ->withErrors(['error' => "Staff limit reached. Your plan allows {$maxUsers} staff member(s). Please upgrade to add more staff."]);
         }
 
@@ -142,7 +142,7 @@ class StaffController extends Controller
                 ->withErrors(['error' => 'Failed to add staff member. Please try again.']);
         }
 
-        return redirect()->route('staff.index')
+        return redirect()->route('app.staff.index')
             ->with('success', 'Staff member added successfully.');
     }
 
@@ -206,7 +206,7 @@ class StaffController extends Controller
             'is_active' => $request->has('is_active') ? (bool)$request->input('is_active') : true,
         ]);
 
-        return redirect()->route('staff.index')
+        return redirect()->route('app.staff.index')
             ->with('success', 'Staff member updated successfully.');
     }
 
@@ -243,7 +243,7 @@ class StaffController extends Controller
             $user->update(['current_tenant_id' => null]);
         }
 
-        return redirect()->route('staff.index')
+        return redirect()->route('app.staff.index')
             ->with('success', 'Staff member removed successfully.');
     }
 
@@ -266,7 +266,7 @@ class StaffController extends Controller
             'password' => Hash::make($validated['password']),
         ]);
 
-        return redirect()->route('staff.edit', $user)
+        return redirect()->route('app.staff.edit', $user)
             ->with('success', 'Password reset successfully.');
     }
 }

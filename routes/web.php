@@ -16,9 +16,25 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [\App\Http\Controllers\LandingController::class, 'index'])->name('home');
 
 // Pricing page (public)
-Route::get('/pricing', function () {
-    return view('pricing');
-})->name('pricing');
+Route::get('/pricing', [PlanController::class, 'publicIndex'])->name('pricing');
+
+// Legal pages (public)
+Route::get('/terms', function () {
+    return view('legal.terms');
+})->name('legal.terms');
+
+Route::get('/privacy', function () {
+    return view('legal.privacy');
+})->name('legal.privacy');
+
+Route::get('/refunds', function () {
+    return view('legal.refunds');
+})->name('legal.refunds');
+
+// Stripe webhook (no auth, signature verification only)
+Route::post('/stripe/webhook', [\App\Http\Controllers\StripeController::class, 'webhook'])
+    ->name('stripe.webhook')
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
 
 // Public signed routes for second screens (no auth required, signed URL validation only)
 Route::middleware(['signed'])->group(function () {
@@ -80,7 +96,30 @@ Route::middleware(['auth', 'superAdmin'])->prefix('platform')->name('platform.')
     
     // Platform-level metrics (system-wide metrics)
     Route::prefix('metrics')->name('metrics.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\MetricsController::class, 'index'])->name('index');
+        Route::get('/', [\App\Http\Controllers\MetricsController::class, 'platformIndex'])->name('index');
+    });
+    
+    // Platform alerts
+    Route::prefix('alerts')->name('alerts.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Platform\AlertController::class, 'index'])->name('index');
+        Route::get('/{alert}', [\App\Http\Controllers\Platform\AlertController::class, 'show'])->name('show');
+        Route::post('/{alert}/resolve', [\App\Http\Controllers\Platform\AlertController::class, 'resolve'])->name('resolve');
+        Route::post('/{alert}/unresolve', [\App\Http\Controllers\Platform\AlertController::class, 'unresolve'])->name('unresolve');
+    });
+    
+    // Platform support ticket management
+    Route::prefix('support')->name('support.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Platform\SupportController::class, 'index'])->name('index');
+        Route::get('/{supportTicket}', [\App\Http\Controllers\Platform\SupportController::class, 'show'])->name('show');
+        Route::post('/{supportTicket}/mark-replied', [\App\Http\Controllers\Platform\SupportController::class, 'markReplied'])->name('mark-replied');
+        Route::post('/{supportTicket}/mark-closed', [\App\Http\Controllers\Platform\SupportController::class, 'markClosed'])->name('mark-closed');
+        Route::post('/{supportTicket}/reopen', [\App\Http\Controllers\Platform\SupportController::class, 'reopen'])->name('reopen');
+    });
+    
+    // Platform reports
+    Route::prefix('reports')->name('reports.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Platform\ReportController::class, 'index'])->name('index');
+        Route::get('/download', [\App\Http\Controllers\Platform\ReportController::class, 'download'])->name('download');
     });
 });
 
@@ -90,16 +129,35 @@ Route::middleware(['auth', 'superAdmin'])->prefix('platform')->name('platform.')
 // Middleware: auth + tenant + tenant.access + subscription
 // ========================================
 Route::middleware(['auth', 'tenant', 'tenant.access', 'subscription'])->prefix('app')->name('app.')->group(function () {
+    // Onboarding routes
+    Route::get('/onboard', [\App\Http\Controllers\OnboardingController::class, 'index'])->name('onboarding.index');
+    Route::get('/onboard/clinic', [\App\Http\Controllers\OnboardingController::class, 'clinic'])->name('onboarding.clinic');
+    Route::post('/onboard/clinic', [\App\Http\Controllers\OnboardingController::class, 'storeClinic'])->name('onboarding.clinic.store');
+    Route::get('/onboard/service', [\App\Http\Controllers\OnboardingController::class, 'service'])->name('onboarding.service');
+    Route::post('/onboard/service', [\App\Http\Controllers\OnboardingController::class, 'storeService'])->name('onboarding.service.store');
+    Route::get('/onboard/complete', [\App\Http\Controllers\OnboardingController::class, 'complete'])->name('onboarding.complete');
+    Route::post('/onboard/skip', [\App\Http\Controllers\OnboardingController::class, 'skip'])->name('onboarding.skip');
+    
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Generic Service routes
+    // Service Management routes (admin only)
+    Route::middleware('role:admin')->group(function () {
+        Route::get('/services', [ServiceController::class, 'list'])->name('services.list');
+        Route::get('/services/create', [ServiceController::class, 'create'])->name('services.create');
+        Route::post('/services', [ServiceController::class, 'store'])->name('services.store');
+        Route::get('/services/{service}/edit', [ServiceController::class, 'edit'])->name('services.edit');
+        Route::put('/services/{service}', [ServiceController::class, 'update'])->name('services.update');
+        Route::delete('/services/{service}', [ServiceController::class, 'destroy'])->name('services.destroy');
+    });
+
+    // Generic Service queue routes
     Route::post('/services/{service}/verify', [ServiceController::class, 'verifyPassword'])
         ->name('service.verify')
         ->middleware('throttle:5,1');
     
     Route::middleware('service.verify')->group(function () {
-        Route::get('/services/{service}', [ServiceController::class, 'index'])->name('service.index');
+        Route::get('/services/{service}/queue', [ServiceController::class, 'show'])->name('service.show');
         Route::get('/services/{service}/second-screen', [ServiceController::class, 'secondScreen'])->name('service.second-screen');
         Route::post('/services/{service}/broadcast', [ServiceController::class, 'broadcastUpdate'])->name('service.broadcast');
     });
@@ -130,6 +188,15 @@ Route::middleware(['auth', 'tenant', 'tenant.access', 'subscription'])->prefix('
     Route::middleware('role:admin')->group(function () {
         Route::get('/subscription', [SubscriptionController::class, 'index'])->name('subscription.index');
         
+        // Stripe payment routes
+        Route::post('/stripe/checkout/{plan}', [\App\Http\Controllers\StripeController::class, 'checkout'])->name('stripe.checkout');
+        Route::get('/stripe/success', [\App\Http\Controllers\StripeController::class, 'success'])->name('stripe.success');
+        
+        // Invoice routes
+        Route::get('/invoices', [\App\Http\Controllers\InvoiceController::class, 'index'])->name('invoices.index');
+        Route::get('/invoices/{invoice}', [\App\Http\Controllers\InvoiceController::class, 'show'])->name('invoices.show');
+        Route::get('/invoices/{invoice}/download', [\App\Http\Controllers\InvoiceController::class, 'download'])->name('invoices.download');
+        
         // Plan routes (for tenant self-activation)
         Route::get('/plans', [PlanController::class, 'index'])->name('plans.index');
         Route::post('/plans/{plan:slug}/activate', [PlanController::class, 'activate'])->name('plans.activate');
@@ -158,6 +225,14 @@ Route::middleware(['auth', 'tenant', 'tenant.access', 'subscription'])->prefix('
             'update' => 'clinic.update',
             'destroy' => 'clinic.destroy',
         ]);
+        
+        // Support routes (all authenticated users)
+        Route::get('/support', [\App\Http\Controllers\SupportController::class, 'index'])->name('support.index');
+        Route::post('/support', [\App\Http\Controllers\SupportController::class, 'store'])->name('support.store');
+        
+        // Reports routes (all authenticated users)
+        Route::get('/reports', [\App\Http\Controllers\ReportController::class, 'index'])->name('reports.index');
+        Route::get('/reports/download', [\App\Http\Controllers\ReportController::class, 'download'])->name('reports.download');
     });
 });
 
@@ -179,8 +254,6 @@ Route::middleware(['auth', 'tenant', 'tenant.access', 'subscription'])->group(fu
         Route::get('/plans', function () {
             return redirect()->route('app.plans.index');
         });
-        Route::get('/metrics', function () {
-            return redirect()->route('platform.metrics.index');
-        });
+        Route::get('/metrics', [\App\Http\Controllers\MetricsController::class, 'tenantIndex'])->name('metrics.index');
     });
 });

@@ -1,6 +1,6 @@
 @extends('layouts.platform')
 
-@section('title', 'Enterprise Metrics - SmartQueue Hospital')
+@section('title', 'Enterprise Metrics - SmartQueue')
 
 @push('styles')
 <script src="https://cdn.tailwindcss.com"></script>
@@ -243,7 +243,7 @@
                             <li>MRR is based on plan prices; actual revenue may vary with manual billing arrangements</li>
                             <li>Active tenants are defined as those with activity in the last 30 days</li>
                             <li>Screen usage hours include only completed sessions</li>
-                            <li>This dashboard is read-only and does not expose personal or patient data</li>
+                            <li>This dashboard is read-only and does not expose personal data</li>
                         </ul>
                     </div>
                 </div>

@@ -90,20 +90,23 @@
             </div>
             <!-- Navigation Bar -->
             <nav class="flex flex-wrap items-center gap-3 sm:gap-6 py-3">
-                <a href="{{ route('app.dashboard') }}" class="text-xs sm:text-sm font-semibold text-blue-600 border-b-2 border-blue-600 pb-2 sm:pb-3 px-1">
+                <a href="{{ route('app.dashboard') }}" class="text-xs sm:text-sm {{ request()->routeIs('app.dashboard') ? 'font-semibold text-blue-600 border-b-2 border-blue-600' : 'font-medium text-gray-600 hover:text-blue-600' }} transition-colors pb-2 sm:pb-3 px-1">
                     Dashboard
                 </a>
                 @admin
-                <a href="{{ route('app.staff.index') }}" class="text-xs sm:text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors pb-2 sm:pb-3 px-1">
+                <a href="{{ route('app.staff.index') }}" class="text-xs sm:text-sm {{ request()->routeIs('app.staff.*') ? 'font-semibold text-blue-600 border-b-2 border-blue-600' : 'font-medium text-gray-600 hover:text-blue-600' }} transition-colors pb-2 sm:pb-3 px-1">
                     Staff
                 </a>
-                <a href="{{ route('app.clinic.index') }}" class="text-xs sm:text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors pb-2 sm:pb-3 px-1">
+                <a href="{{ route('app.clinic.index') }}" class="text-xs sm:text-sm {{ request()->routeIs('app.clinic.*') ? 'font-semibold text-blue-600 border-b-2 border-blue-600' : 'font-medium text-gray-600 hover:text-blue-600' }} transition-colors pb-2 sm:pb-3 px-1">
                     Clinics
                 </a>
-                <a href="{{ route('app.subscription.index') }}" class="hidden sm:inline text-xs sm:text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors pb-2 sm:pb-3 px-1">
+                <a href="{{ route('app.services.list') }}" class="text-xs sm:text-sm {{ request()->routeIs('app.services.*') || request()->routeIs('app.service.*') ? 'font-semibold text-blue-600 border-b-2 border-blue-600' : 'font-medium text-gray-600 hover:text-blue-600' }} transition-colors pb-2 sm:pb-3 px-1">
+                    Services
+                </a>
+                <a href="{{ route('app.subscription.index') }}" class="hidden sm:inline text-xs sm:text-sm {{ request()->routeIs('app.subscription.*') || request()->routeIs('app.plans.*') ? 'font-semibold text-blue-600 border-b-2 border-blue-600' : 'font-medium text-gray-600 hover:text-blue-600' }} transition-colors pb-2 sm:pb-3 px-1">
                     Billing & Subscription
                 </a>
-                <a href="{{ route('app.subscription.index') }}" class="sm:hidden text-xs sm:text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors pb-2 sm:pb-3 px-1">
+                <a href="{{ route('app.subscription.index') }}" class="sm:hidden text-xs sm:text-sm {{ request()->routeIs('app.subscription.*') || request()->routeIs('app.plans.*') ? 'font-semibold text-blue-600 border-b-2 border-blue-600' : 'font-medium text-gray-600 hover:text-blue-600' }} transition-colors pb-2 sm:pb-3 px-1">
                     Billing
                 </a>
                 @endadmin
@@ -406,7 +409,7 @@
             <div class="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-gray-200">
                 <div class="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
                     <p class="text-xs sm:text-sm text-gray-500 text-center sm:text-left">
-                        &copy; {{ date('Y') }} SmartQueue. All rights reserved. | Queue Management System for Healthcare
+                        &copy; {{ date('Y') }} SmartQueue. All rights reserved. | Universal Queue Management System
                     </p>
                     <div class="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-500">
                         <span>Version 1.0</span>

@@ -1,6 +1,6 @@
 @extends('layouts.tenant')
 
-@section('title', 'Clinic Management - SmartQueue Hospital')
+@section('title', 'Clinic Management - SmartQueue')
 
 @push('styles')
 <script src="https://cdn.tailwindcss.com"></script>
@@ -137,7 +137,7 @@
                     </svg>
                 </div>
                 <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-2 sm:mb-3">No Clinics Yet</h3>
-                <p class="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6 max-w-md mx-auto">Clinics are locations where you manage patient queues and services. Add your first clinic to get started.</p>
+                <p class="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6 max-w-md mx-auto">Clinics are locations where you manage queues and services. Add your first clinic to get started.</p>
                 @if($canCreateMore)
                     <a href="{{ route('app.clinic.create') }}" class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-semibold hover:shadow-xl hover:scale-105 transition-all touch-manipulation text-sm sm:text-base">
                         <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

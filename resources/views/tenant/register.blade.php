@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Register - SmartQueue Hospital')
+@section('title', 'Register - SmartQueue')
 
 @push('styles')
 <style>
@@ -209,6 +209,16 @@
                 <label for="password_confirmation">Confirm Password *</label>
                 <input type="password" id="password_confirmation" name="password_confirmation" required>
             </div>
+        </div>
+
+        <div class="form-group">
+            <label class="flex items-start" style="font-weight: normal; font-size: 14px;">
+                <input type="checkbox" name="terms_accepted" required style="margin-top: 4px; margin-right: 8px;">
+                <span>
+                    I agree to the <a href="{{ route('legal.terms') }}" target="_blank" style="color: #007bff; text-decoration: underline;">Terms of Service</a> 
+                    and <a href="{{ route('legal.privacy') }}" target="_blank" style="color: #007bff; text-decoration: underline;">Privacy Policy</a>
+                </span>
+            </label>
         </div>
 
         <button type="submit" class="btn-register">Register Organization</button>

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Subscription extends Model
 {
@@ -19,6 +20,9 @@ class Subscription extends Model
         'ends_at',
         'cancelled_at',
         'features',
+        'stripe_subscription_id',
+        'stripe_customer_id',
+        'payment_method', // 'manual' or 'stripe'
     ];
 
     protected $casts = [
@@ -77,6 +81,14 @@ class Subscription extends Model
     public function plan(): BelongsTo
     {
         return $this->belongsTo(Plan::class);
+    }
+
+    /**
+     * Get all invoices for this subscription
+     */
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(\App\Models\Invoice::class);
     }
 
     /**

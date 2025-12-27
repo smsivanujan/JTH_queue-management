@@ -62,6 +62,12 @@ class SubscriptionController extends Controller
             $trialDaysRemaining = max(0, now()->diffInDays($tenant->trial_ends_at, false));
         }
 
+        // Check if Stripe is configured
+        $stripeEnabled = !empty(config('services.stripe.key')) && !empty(config('services.stripe.secret'));
+
+        // Determine recommended plan (Pro plan is recommended)
+        $recommendedPlanSlug = 'pro';
+
         return view('subscription.index', compact(
             'tenant', 
             'subscription', 
@@ -76,7 +82,9 @@ class SubscriptionController extends Controller
             'maxClinics',
             'maxUsers',
             'maxScreens',
-            'trialDaysRemaining'
+            'trialDaysRemaining',
+            'stripeEnabled',
+            'recommendedPlanSlug'
         ));
     }
 }

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Select Organization - SmartQueue Hospital')
+@section('title', 'Select Organization - SmartQueue')
 
 @push('styles')
 <style>

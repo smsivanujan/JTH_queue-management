@@ -39,3 +39,15 @@ Schedule::command('backup:monitor')
     ->withoutOverlapping()
     ->onOneServer()
     ->emailOutputOnFailure(env('BACKUP_NOTIFICATION_EMAIL'));
+
+// Check for alerts (churn risk, payment risk, system health)
+Schedule::command('alerts:check')
+    ->dailyAt('09:00')
+    ->withoutOverlapping()
+    ->onOneServer();
+
+// Run automation (trial reminders, inactivity nudges)
+Schedule::command('automation:run')
+    ->dailyAt('10:00')
+    ->withoutOverlapping()
+    ->onOneServer();

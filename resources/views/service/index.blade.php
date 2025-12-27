@@ -1,6 +1,6 @@
 @extends('layouts.tenant')
 
-@section('title', $service->name . ' - SmartQueue')
+@section('title', $service->name . ' Queue - SmartQueue')
 
 @push('styles')
 <script src="https://cdn.tailwindcss.com"></script>

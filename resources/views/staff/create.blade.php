@@ -1,6 +1,6 @@
 @extends('layouts.tenant')
 
-@section('title', 'Add Staff - SmartQueue Hospital')
+@section('title', 'Add Staff - SmartQueue')
 
 @push('styles')
 <script src="https://cdn.tailwindcss.com"></script>
@@ -43,13 +43,20 @@
                 @csrf
 
                 @if($errors->any())
-                    <div class="mb-4 sm:mb-6 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
-                        <div class="font-semibold mb-2 text-sm sm:text-base">Please fix the following errors:</div>
-                        <ul class="list-disc list-inside space-y-1 text-xs sm:text-sm">
-                            @foreach($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
+                    <div class="mb-4 sm:mb-6 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg fade-in">
+                        <div class="flex items-start">
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                            </svg>
+                            <div class="flex-1">
+                                <div class="font-semibold mb-1 text-sm sm:text-base">Please fix the following errors:</div>
+                                <ul class="list-disc list-inside space-y-1 text-xs sm:text-sm">
+                                    @foreach($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        </div>
                     </div>
                 @endif
 
@@ -131,7 +138,7 @@
                     <a href="{{ route('app.staff.index') }}" class="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-all text-center text-sm sm:text-base touch-manipulation">
                         Cancel
                     </a>
-                    <button type="submit" class="px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg font-semibold hover:shadow-xl hover:scale-105 transition-all text-sm sm:text-base touch-manipulation">
+                    <button type="submit" class="px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg font-semibold hover:shadow-xl hover:scale-105 transition-all text-sm sm:text-base touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed" onclick="this.disabled=true; this.form.submit();">
                         Add Staff Member
                     </button>
                 </div>

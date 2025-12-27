@@ -88,6 +88,38 @@ class Tenant extends Model
     }
 
     /**
+     * Get all invoices for this tenant
+     */
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(\App\Models\Invoice::class);
+    }
+
+    /**
+     * Get all alerts for this tenant
+     */
+    public function alerts(): HasMany
+    {
+        return $this->hasMany(\App\Models\Alert::class);
+    }
+
+    /**
+     * Get all support tickets for this tenant
+     */
+    public function supportTickets(): HasMany
+    {
+        return $this->hasMany(\App\Models\SupportTicket::class);
+    }
+
+    /**
+     * Get all automation logs for this tenant
+     */
+    public function automationLogs(): HasMany
+    {
+        return $this->hasMany(\App\Models\AutomationLog::class);
+    }
+
+    /**
      * Check if tenant has active subscription
      */
     public function hasActiveSubscription(): bool

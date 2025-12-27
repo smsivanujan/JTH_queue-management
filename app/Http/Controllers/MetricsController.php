@@ -7,6 +7,8 @@ use App\Models\Subscription;
 use App\Models\Plan;
 use App\Models\ActiveScreen;
 use App\Models\ScreenUsageLog;
+use App\Models\Queue;
+use App\Models\SubQueue;
 use App\Scopes\TenantScope;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -14,80 +16,98 @@ use Carbon\Carbon;
 class MetricsController extends Controller
 {
     /**
-     * Display the metrics dashboard
-     * 
-     * This dashboard shows system-wide metrics for investors/enterprise.
-     * Only accessible to admin users and requires authentication.
+     * Display platform metrics dashboard (Super Admin only)
      */
-    public function index()
+    public function platformIndex()
     {
-        // Security: Only admins can access this dashboard
-        if (!auth()->check() || !auth()->user()->isAdmin()) {
-            abort(403, 'Unauthorized access. Admin access required.');
+        // Only Super Admin can access platform metrics
+        if (!auth()->check() || !auth()->user()->isSuperAdmin()) {
+            abort(403, 'Unauthorized access. Super Admin access required.');
         }
 
-        $metrics = $this->calculateMetrics();
+        $metrics = $this->calculatePlatformMetrics();
 
-        return view('metrics.dashboard', compact('metrics'));
+        return view('metrics.platform', compact('metrics'));
     }
 
     /**
-     * Calculate all metrics (read-only queries)
-     * 
-     * Note: We bypass TenantScope to get system-wide metrics
-     * 
-     * @return array
+     * Display tenant metrics dashboard
      */
-    private function calculateMetrics(): array
+    public function tenantIndex()
+    {
+        $tenant = app('tenant');
+        
+        if (!$tenant) {
+            abort(403, 'Tenant context required.');
+        }
+
+        $metrics = $this->calculateTenantMetrics($tenant);
+
+        return view('metrics.tenant', compact('metrics', 'tenant'));
+    }
+
+    /**
+     * Calculate platform metrics (read-only queries)
+     */
+    private function calculatePlatformMetrics(): array
     {
         return [
             'total_tenants' => $this->getTotalTenants(),
-            'active_tenants' => $this->getActiveTenants(),
-            'active_paid_subscriptions' => $this->getActivePaidSubscriptions(),
-            'monthly_recurring_revenue' => $this->getMonthlyRecurringRevenue(),
+            'active_tenants_7d' => $this->getActiveTenantsLast7Days(),
+            'active_tenants_30d' => $this->getActiveTenantsLast30Days(),
+            'queues_opened_today' => $this->getQueuesOpenedToday(),
+            'queues_opened_week' => $this->getQueuesOpenedThisWeek(),
             'active_screens_today' => $this->getActiveScreensToday(),
-            'total_screen_hours' => $this->getTotalScreenHours(),
-            'usage_by_type' => $this->getUsageByType(),
+            'trial_to_paid_conversion' => $this->getTrialToPaidConversion(),
+            'monthly_recurring_revenue' => $this->getMonthlyRecurringRevenue(),
             'subscription_breakdown' => $this->getSubscriptionBreakdown(),
-            'tenants_by_status' => $this->getTenantsByStatus(),
         ];
     }
 
     /**
-     * Get total number of tenants (including inactive and soft-deleted)
-     * 
-     * Note: Tenant model doesn't have TenantScope (it IS the tenant),
-     * but we use withoutGlobalScope to ensure no scoping is applied
-     * 
-     * @return int
+     * Calculate tenant metrics (read-only queries)
+     */
+    private function calculateTenantMetrics(Tenant $tenant): array
+    {
+        return [
+            'queues_opened_today' => $this->getTenantQueuesOpenedToday($tenant),
+            'queues_opened_week' => $this->getTenantQueuesOpenedThisWeek($tenant),
+            'tokens_served_today' => $this->getTenantTokensServedToday($tenant),
+            'tokens_served_week' => $this->getTenantTokensServedThisWeek($tenant),
+            'active_screens' => $this->getTenantActiveScreens($tenant),
+            'usage_trends' => $this->getTenantUsageTrends($tenant),
+        ];
+    }
+
+    /**
+     * Get total number of tenants
      */
     private function getTotalTenants(): int
     {
-        // Tenant model itself doesn't typically have tenant scoping, but ensure we get all
         return Tenant::withTrashed()->count();
     }
 
     /**
-     * Get active tenants (last 30 days)
-     * 
-     * Active tenants are those that have:
-     * - Is_active = true
-     * - Have activity in the last 30 days (screen usage, subscription activity, etc.)
-     * 
-     * @return int
+     * Get active tenants (last 7 days)
+     * Active = has activity (screen usage, subscription activity, queue access)
      */
-    private function getActiveTenants(): int
+    private function getActiveTenantsLast7Days(): int
     {
-        $thirtyDaysAgo = Carbon::now()->subDays(30);
+        $sevenDaysAgo = Carbon::now()->subDays(7);
 
-        // Get tenants that have activity (screen usage, subscription, or user activity) in last 30 days
         $tenantIds = DB::table('screen_usage_logs')
-            ->where('started_at', '>=', $thirtyDaysAgo)
+            ->where('started_at', '>=', $sevenDaysAgo)
             ->distinct()
             ->pluck('tenant_id')
             ->merge(
                 DB::table('subscriptions')
-                    ->where('updated_at', '>=', $thirtyDaysAgo)
+                    ->where('updated_at', '>=', $sevenDaysAgo)
+                    ->distinct()
+                    ->pluck('tenant_id')
+            )
+            ->merge(
+                DB::table('queues')
+                    ->where('created_at', '>=', $sevenDaysAgo)
                     ->distinct()
                     ->pluck('tenant_id')
             )
@@ -101,19 +121,94 @@ class MetricsController extends Controller
     }
 
     /**
-     * Get count of active paid subscriptions
-     * 
-     * Active paid subscriptions are those that:
-     * - Status = 'active'
-     * - Have an associated plan with price > 0
-     * - Are not expired (ends_at is null or in the future)
-     * 
-     * @return int
+     * Get active tenants (last 30 days) - for comparison
      */
-    private function getActivePaidSubscriptions(): int
+    private function getActiveTenantsLast30Days(): int
     {
-        // Subscription model doesn't have TenantScope, so we can query directly
-        return Subscription::where('status', Subscription::STATUS_ACTIVE)
+        $thirtyDaysAgo = Carbon::now()->subDays(30);
+
+        $tenantIds = DB::table('screen_usage_logs')
+            ->where('started_at', '>=', $thirtyDaysAgo)
+            ->distinct()
+            ->pluck('tenant_id')
+            ->merge(
+                DB::table('subscriptions')
+                    ->where('updated_at', '>=', $thirtyDaysAgo)
+                    ->distinct()
+                    ->pluck('tenant_id')
+            )
+            ->merge(
+                DB::table('queues')
+                    ->where('created_at', '>=', $thirtyDaysAgo)
+                    ->distinct()
+                    ->pluck('tenant_id')
+            )
+            ->unique()
+            ->toArray();
+
+        return Tenant::withTrashed()
+            ->where('is_active', true)
+            ->whereIn('id', $tenantIds)
+            ->count();
+    }
+
+    /**
+     * Get queues opened today (platform-wide)
+     * Queues are created on-demand when accessed, so created_at tracks "opened"
+     */
+    private function getQueuesOpenedToday(): int
+    {
+        return Queue::withoutGlobalScope(TenantScope::class)
+            ->whereDate('created_at', today())
+            ->count();
+    }
+
+    /**
+     * Get queues opened this week (platform-wide)
+     */
+    private function getQueuesOpenedThisWeek(): int
+    {
+        return Queue::withoutGlobalScope(TenantScope::class)
+            ->where('created_at', '>=', Carbon::now()->startOfWeek())
+            ->count();
+    }
+
+    /**
+     * Get count of active screens today (platform-wide)
+     */
+    private function getActiveScreensToday(): int
+    {
+        return ActiveScreen::withoutGlobalScope(TenantScope::class)
+            ->where('last_heartbeat_at', '>=', Carbon::now()->subSeconds(30))
+            ->count();
+    }
+
+    /**
+     * Calculate trial to paid conversion rate
+     * Conversion = tenants who had trial subscription and now have paid subscription
+     */
+    private function getTrialToPaidConversion(): array
+    {
+        // Get all tenants who ever had a trial subscription
+        $trialTenants = Subscription::where('status', Subscription::STATUS_TRIAL)
+            ->orWhere('plan_name', 'trial')
+            ->distinct()
+            ->pluck('tenant_id')
+            ->toArray();
+
+        $totalTrials = count($trialTenants);
+
+        if ($totalTrials === 0) {
+            return [
+                'total_trials' => 0,
+                'converted' => 0,
+                'conversion_rate' => 0,
+            ];
+        }
+
+        // Get tenants who have active paid subscriptions (price > 0)
+        $convertedTenants = Subscription::whereIn('tenant_id', $trialTenants)
+            ->where('status', Subscription::STATUS_ACTIVE)
             ->where(function ($query) {
                 $query->whereNull('ends_at')
                     ->orWhere('ends_at', '>', now());
@@ -121,23 +216,24 @@ class MetricsController extends Controller
             ->whereHas('plan', function ($query) {
                 $query->where('price', '>', 0);
             })
+            ->distinct()
+            ->pluck('tenant_id')
             ->count();
+
+        $conversionRate = round(($convertedTenants / $totalTrials) * 100, 1);
+
+        return [
+            'total_trials' => $totalTrials,
+            'converted' => $convertedTenants,
+            'conversion_rate' => $conversionRate,
+        ];
     }
 
     /**
      * Calculate Monthly Recurring Revenue (MRR)
-     * 
-     * MRR is calculated as the sum of all active subscription plan prices.
-     * For annual plans, we calculate monthly equivalent (price / 12).
-     * 
-     * Note: This assumes billing is subscription-based. If billing is manual,
-     * this metric may not reflect actual revenue.
-     * 
-     * @return float
      */
     private function getMonthlyRecurringRevenue(): float
     {
-        // Subscription model doesn't have TenantScope, so we can query directly
         $subscriptions = Subscription::where('status', Subscription::STATUS_ACTIVE)
             ->where(function ($query) {
                 $query->whereNull('ends_at')
@@ -173,75 +269,10 @@ class MetricsController extends Controller
     }
 
     /**
-     * Get count of active screens today
-     * 
-     * Active screens are those that have sent a heartbeat in the last 30 seconds
-     * (screens that are currently displaying)
-     * 
-     * @return int
-     */
-    private function getActiveScreensToday(): int
-    {
-        return ActiveScreen::withoutGlobalScope(TenantScope::class)
-            ->where('last_heartbeat_at', '>=', Carbon::now()->subSeconds(30))
-            ->count();
-    }
-
-    /**
-     * Get total screen usage hours (all time)
-     * 
-     * Calculated from screen_usage_logs where ended_at is not null
-     * (completed sessions only)
-     * 
-     * @return float
-     */
-    private function getTotalScreenHours(): float
-    {
-        $totalSeconds = ScreenUsageLog::withoutGlobalScope(TenantScope::class)
-            ->whereNotNull('ended_at')
-            ->whereNotNull('duration_seconds')
-            ->sum('duration_seconds');
-
-        return round($totalSeconds / 3600, 2);
-    }
-
-    /**
-     * Get usage breakdown by screen type (Queue vs Service)
-     * 
-     * Returns hours used for each screen type (all time)
-     * Note: 'service' replaces the old 'opd_lab' screen type
-     * 
-     * @return array ['queue' => float, 'service' => float]
-     */
-    private function getUsageByType(): array
-    {
-        $breakdown = ScreenUsageLog::withoutGlobalScope(TenantScope::class)
-            ->whereNotNull('ended_at')
-            ->whereNotNull('duration_seconds')
-            ->selectRaw('screen_type, SUM(duration_seconds) as total_seconds')
-            ->groupBy('screen_type')
-            ->pluck('total_seconds', 'screen_type')
-            ->toArray();
-
-        // Combine 'opd_lab' (legacy) with 'service' (new) for backward compatibility
-        $serviceHours = round((($breakdown['service'] ?? 0) + ($breakdown['opd_lab'] ?? 0)) / 3600, 2);
-
-        return [
-            'queue' => round(($breakdown['queue'] ?? 0) / 3600, 2),
-            'service' => $serviceHours,
-        ];
-    }
-
-    /**
      * Get subscription breakdown by plan
-     * 
-     * Returns count of active subscriptions grouped by plan
-     * 
-     * @return array
      */
     private function getSubscriptionBreakdown(): array
     {
-        // Subscription model doesn't have TenantScope, so we can query directly
         return Subscription::where('status', Subscription::STATUS_ACTIVE)
             ->where(function ($query) {
                 $query->whereNull('ends_at')
@@ -259,22 +290,85 @@ class MetricsController extends Controller
     }
 
     /**
-     * Get tenant count by status
-     * 
-     * @return array
+     * Get queues opened today for tenant
      */
-    private function getTenantsByStatus(): array
+    private function getTenantQueuesOpenedToday(Tenant $tenant): int
     {
-        // Tenant model doesn't have TenantScope, use withTrashed to include all
-        $tenants = Tenant::withTrashed()
-            ->select('is_active', DB::raw('count(*) as count'))
-            ->groupBy('is_active')
-            ->pluck('count', 'is_active')
-            ->toArray();
+        return Queue::where('tenant_id', $tenant->id)
+            ->whereDate('created_at', today())
+            ->count();
+    }
 
-        return [
-            'active' => $tenants[1] ?? 0,
-            'inactive' => $tenants[0] ?? 0,
-        ];
+    /**
+     * Get queues opened this week for tenant
+     */
+    private function getTenantQueuesOpenedThisWeek(Tenant $tenant): int
+    {
+        return Queue::where('tenant_id', $tenant->id)
+            ->where('created_at', '>=', Carbon::now()->startOfWeek())
+            ->count();
+    }
+
+    /**
+     * Get tokens served today for tenant
+     * Tokens = number of times "next" was called (current_number - 1 per sub-queue)
+     * We count sub-queues that have been advanced (current_number > 1)
+     */
+    private function getTenantTokensServedToday(Tenant $tenant): int
+    {
+        // Count tokens served = sum of (current_number - 1) for all active sub-queues
+        // current_number starts at 1, so if it's 5, that means 4 tokens were served (2,3,4,5)
+        // Actually, if current_number is 5, we're displaying token 5, so 5 tokens have been shown
+        // So we sum current_number for all sub-queues that have been used
+        return SubQueue::where('tenant_id', $tenant->id)
+            ->where('current_number', '>', 1)
+            ->whereDate('updated_at', today())
+            ->sum(DB::raw('current_number - 1'));
+    }
+
+    /**
+     * Get tokens served this week for tenant
+     */
+    private function getTenantTokensServedThisWeek(Tenant $tenant): int
+    {
+        return SubQueue::where('tenant_id', $tenant->id)
+            ->where('current_number', '>', 1)
+            ->where('updated_at', '>=', Carbon::now()->startOfWeek())
+            ->sum(DB::raw('current_number - 1'));
+    }
+
+    /**
+     * Get active screens for tenant
+     */
+    private function getTenantActiveScreens(Tenant $tenant): int
+    {
+        return ActiveScreen::getActiveCount($tenant->id, null, 30);
+    }
+
+    /**
+     * Get usage trends for tenant (last 7 days)
+     */
+    private function getTenantUsageTrends(Tenant $tenant): array
+    {
+        $trends = [];
+        
+        for ($i = 6; $i >= 0; $i--) {
+            $date = Carbon::now()->subDays($i);
+            $dateStart = $date->copy()->startOfDay();
+            $dateEnd = $date->copy()->endOfDay();
+
+            $trends[] = [
+                'date' => $date->format('M d'),
+                'queues' => Queue::where('tenant_id', $tenant->id)
+                    ->whereBetween('created_at', [$dateStart, $dateEnd])
+                    ->count(),
+                'tokens' => SubQueue::where('tenant_id', $tenant->id)
+                    ->where('current_number', '>', 1)
+                    ->whereBetween('updated_at', [$dateStart, $dateEnd])
+                    ->sum(DB::raw('current_number - 1')),
+            ];
+        }
+
+        return $trends;
     }
 }

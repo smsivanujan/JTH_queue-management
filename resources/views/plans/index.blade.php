@@ -1,6 +1,6 @@
 @extends('layouts.tenant')
 
-@section('title', 'Available Plans - SmartQueue Hospital')
+@section('title', 'Available Plans - SmartQueue')
 
 @push('styles')
 <script src="https://cdn.tailwindcss.com"></script>
